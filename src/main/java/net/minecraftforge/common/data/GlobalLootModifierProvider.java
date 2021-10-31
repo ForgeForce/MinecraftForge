@@ -103,7 +103,6 @@ public abstract class GlobalLootModifierProvider implements DataProvider
      *
      * @param modifier      The name of the modifier, which will be the file name.
      * @param serializer    The serializer of this modifier.
-     * @param conditions    The loot conditions before {@link LootModifier#doApply} is called.
      */
     public <T extends IGlobalLootModifier> void add(String modifier, GlobalLootModifierSerializer<T> serializer, T instance)
     {
