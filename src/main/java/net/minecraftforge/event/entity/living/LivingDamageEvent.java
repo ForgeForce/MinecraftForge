@@ -19,6 +19,7 @@
 
 package net.minecraftforge.event.entity.living;
 
+import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.eventbus.api.Cancelable;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -28,10 +29,10 @@ import net.minecraft.world.entity.LivingEntity;
  * At this point armor, potion and absorption modifiers have already been applied to damage - this is FINAL value.<br>
  * Also note that appropriate resources (like armor durability and absorption extra hearths) have already been consumed.<br>
  * This event is fired whenever an Entity is damaged in
- * {@link EntityLivingBase#damageEntity(DamageSource, float)} and
- * {@link EntityPlayer#damageEntity(DamageSource, float)}.<br>
+ * {@code LivingEntity#actuallyHurt(DamageSource, float)} and
+ * {@code net.minecraft.world.entity.player.Player#actuallyHurt(DamageSource, float)}.<br>
  * <br>
- * This event is fired via the {@link ForgeHooks#onLivingDamage(EntityLivingBase, DamageSource, float)}.<br>
+ * This event is fired via the {@link ForgeHooks#onLivingDamage(LivingEntity, DamageSource, float)}.<br>
  * <br>
  * {@link #source} contains the DamageSource that caused this Entity to be hurt. <br>
  * {@link #amount} contains the final amount of damage that will be dealt to entity. <br>

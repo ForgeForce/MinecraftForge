@@ -19,20 +19,23 @@
 
 package net.minecraftforge.event.entity.living;
 
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.common.ForgeHooks;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.Cancelable;
 
 /**
  * LivingKnockBackEvent is fired when a living entity is about to be knocked back. <br>
  * This event is fired whenever an Entity is knocked back in
- * {@link EntityLivingBase#attackEntityFrom(DamageSource, float)},
- * {@link EntityLivingBase#blockWithShield(EntityLivingBase)},
- * {@link EntityMob#attackEntityAsMob(Entity)} and
- * {@link EntityPlayer#attackTargetEntityWithCurrentItem(Entity)} <br>
+ * {@link LivingEntity#hurt(DamageSource, float)},
+ * {@code LivingEntity#blockUsingShield(LivingEntity)},
+ * {@link net.minecraft.world.entity.Mob#doHurtTarget(Entity)} and
+ * {@link net.minecraft.world.entity.player.Player#attack(Entity)} <br>
  * <br>
- * This event is fired via {@link ForgeHooks#onLivingKnockBack(EntityLivingBase, Entity, float, double, double)}.<br>
+ * This event is fired via {@link ForgeHooks#onLivingKnockBack(LivingEntity, float, double, double)} .<br>
  * <br>
- * {@link #attacker} contains the Entity that caused the knock back. <br>
  * {@link #strength} contains the strength of the knock back. <br>
  * {@link #ratioX} contains the x ratio of the knock back. <br>
  * {@link #ratioZ} contains the z ratio of the knock back. <br>
