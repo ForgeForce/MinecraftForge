@@ -104,7 +104,7 @@ public class ModelLoaderRegistry
 
     /**
      * Makes system aware of your loader.
-     * <b>Must be called from within {@link ModelRegistryEvent}</b>
+     * <b>Must be called from within {@link net.minecraftforge.client.event.ModelRegistryEvent}</b>
      */
     public static void registerLoader(ResourceLocation id, IModelLoader<?> loader)
     {
