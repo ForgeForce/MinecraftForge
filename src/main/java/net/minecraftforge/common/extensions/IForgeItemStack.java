@@ -116,7 +116,6 @@ public interface IForgeItemStack extends ICapabilitySerializable<CompoundTag>
     /**
      * Queries if an item can perform the given action.
      * See {@link net.minecraftforge.common.ToolActions} for a description of each stock action
-     * @param stack The stack being used
      * @param toolAction The action being queried
      * @return True if the stack can perform the action
      */
@@ -157,7 +156,7 @@ public interface IForgeItemStack extends ICapabilitySerializable<CompoundTag>
      * applies specifically to enchanting an item in the enchanting table and is
      * called when retrieving the list of possible enchantments for an item.
      * Enchantments may additionally (or exclusively) be doing their own checks in
-     * {@link net.minecraft.enchantment.Enchantment#canApplyAtEnchantingTable(ItemStack)};
+     * {@link net.minecraft.world.item.enchantment.Enchantment#canApplyAtEnchantingTable(ItemStack)};
      * check the individual implementation for reference. By default this will check
      * if the enchantment type is valid for this item type.
      *
@@ -287,7 +286,7 @@ public interface IForgeItemStack extends ICapabilitySerializable<CompoundTag>
     }
 
     /**
-     * Called every tick from {@link HorseEntity#onUpdate()} on the item in the
+     * Called every tick from {@code Horse#playGallopSound(SoundEvent)} on the item in the
      * armor slot.
      *
      * @param world the world the horse is in
