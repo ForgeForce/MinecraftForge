@@ -29,6 +29,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 import net.minecraft.MethodsReturnNonnullByDefault;
+import net.minecraftforge.common.capabilities.Capability;
 import org.apache.commons.lang3.mutable.Mutable;
 import org.apache.commons.lang3.mutable.MutableObject;
 import org.apache.logging.log4j.Level;
@@ -91,7 +92,7 @@ public class LazyOptional<T>
     /**
      * This method hides an unchecked cast to the inferred type. Only use this if
      * you are sure the type should match. For capabilities, generally
-     * {@link Capability#orEmpty(Capability, LazyOptional)} should be used.
+     * {@link net.minecraftforge.common.capabilities.Capability#orEmpty(Capability, LazyOptional)} should be used.
      * 
      * @return This {@link LazyOptional}, cast to the inferred generic type
      */
