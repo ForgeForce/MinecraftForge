@@ -19,6 +19,8 @@
 
 package net.minecraftforge.event.entity.player;
 
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.Cancelable;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -29,7 +31,7 @@ import javax.annotation.Nonnull;
 /**
  * ArrowLooseEvent is fired when a player stops using a bow.<br>
  * This event is fired whenever a player stops using a bow in
- * {@link ItemBow#onPlayerStoppedUsing(ItemStack, World, EntityLivingBase, int)}.<br>
+ * {@link net.minecraft.world.item.BowItem#releaseUsing(ItemStack, Level, LivingEntity, int)}.<br>
  * <br>
  * {@link #bow} contains the ItemBow ItemStack that was used in this event.<br>
  * {@link #charge} contains the value for how much the player had charged before stopping the shot.<br>
