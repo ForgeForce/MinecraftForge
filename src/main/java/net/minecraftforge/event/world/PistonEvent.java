@@ -74,7 +74,7 @@ public abstract class PistonEvent extends BlockEvent
     }
 
     /**
-     * @return A piston structure helper for this movement. Returns null if the world stored is not a {@link World}
+     * @return A piston structure helper for this movement. Returns null if the world stored is not a {@link Level}
      */
     @Nullable
     public PistonStructureResolver getStructureHelper()
