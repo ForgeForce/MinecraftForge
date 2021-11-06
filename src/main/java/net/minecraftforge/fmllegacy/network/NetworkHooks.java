@@ -158,12 +158,8 @@ public class NetworkHooks
     /**
      * Request to open a GUI on the client, from the server
      *
-     * Refer to {@link net.minecraftforge.fml.ExtensionPoint#CONFIGGUIFACTORY} for how to provide a function to consume
+     * Refer to {@link net.minecraftforge.fml.IExtensionPoint.DisplayTest} for how to provide a function to consume
      * these GUI requests on the client.
-     *
-     * The {@link IInteractionObject#getGuiID()} is treated as a {@link ResourceLocation}.
-     * It should refer to a valid modId namespace, to trigger opening on the client.
-     * The namespace is directly used to lookup the modId in the client side.
      *
      * @param player The player to open the GUI for
      * @param containerSupplier A supplier of container properties including the registry name of the container
@@ -176,12 +172,8 @@ public class NetworkHooks
     /**
      * Request to open a GUI on the client, from the server
      *
-     * Refer to {@link net.minecraftforge.fml.ExtensionPoint#CONFIGGUIFACTORY} for how to provide a function to consume
+     * Refer to {@link net.minecraftforge.fml.IExtensionPoint.DisplayTest} for how to provide a function to consume
      * these GUI requests on the client.
-     *
-     * The {@link IInteractionObject#getGuiID()} is treated as a {@link ResourceLocation}.
-     * It should refer to a valid modId namespace, to trigger opening on the client.
-     * The namespace is directly used to lookup the modId in the client side.
      *
      * @param player The player to open the GUI for
      * @param containerSupplier A supplier of container properties including the registry name of the container
@@ -194,12 +186,9 @@ public class NetworkHooks
     /**
      * Request to open a GUI on the client, from the server
      *
-     * Refer to {@link net.minecraftforge.fml.ExtensionPoint#CONFIGGUIFACTORY} for how to provide a function to consume
+     * Refer to {@link net.minecraftforge.fml.IExtensionPoint.DisplayTest} for how to provide a function to consume
      * these GUI requests on the client.
      *
-     * The {@link IInteractionObject#getGuiID()} is treated as a {@link ResourceLocation}.
-     * It should refer to a valid modId namespace, to trigger opening on the client.
-     * The namespace is directly used to lookup the modId in the client side.
      * The maximum size for #extraDataWriter is 32600 bytes.
      *
      * @param player The player to open the GUI for

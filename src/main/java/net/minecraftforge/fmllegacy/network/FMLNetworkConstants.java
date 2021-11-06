@@ -50,7 +50,7 @@ public class FMLNetworkConstants
     static final SimpleChannel playChannel = NetworkInitialization.getPlayChannel();
     static final List<EventNetworkChannel> mcRegChannels = NetworkInitialization.buildMCRegistrationChannels();
     /**
-     * Return this value in your {@link net.minecraftforge.fml.ExtensionPoint#DISPLAYTEST} function to be ignored.
+     * Return this value in your {@link net.minecraftforge.fml.IExtensionPoint.DisplayTest} function to be ignored.
      */
     public static final String IGNORESERVERONLY = "OHNOES\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31\uD83D\uDE31";
 
