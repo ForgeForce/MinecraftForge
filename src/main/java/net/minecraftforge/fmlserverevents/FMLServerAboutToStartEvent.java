@@ -22,7 +22,7 @@ package net.minecraftforge.fmlserverevents;
 import net.minecraft.server.MinecraftServer;
 
 /**
- * Called before the server begins loading anything. Called after {@link InterModProcessEvent} on the dedicated
+ * Called before the server begins loading anything. Called after {@link net.minecraftforge.fml.event.lifecycle.InterModProcessEvent} on the dedicated
  * server, and after the player has hit "Play Selected World" in the client. Called before {@link FMLServerStartingEvent}.
  *
  * You can obtain a reference to the server with this event.
