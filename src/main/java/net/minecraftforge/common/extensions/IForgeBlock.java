@@ -476,7 +476,7 @@ public interface IForgeBlock
 
     /**
      * Used to determine the state 'viewed' by an entity (see
-     * {@link ActiveRenderInfo#getBlockStateAtEntityViewpoint(World, Entity, float)}).
+     * {@link net.minecraft.client.Camera#getBlockAtCamera()}).
      * Can be used by fluid blocks to determine if the viewpoint is within the fluid or not.
      *
      * @param state     the state
@@ -724,7 +724,7 @@ public interface IForgeBlock
      * Whether redstone dust should visually connect to this block on a given side
      * <p>
      * The default implementation is identical to
-     * {@link RedStoneWireBlock#shouldConnectTo(BlockState, Direction)}
+     * {@code RedStoneWireBlock#shouldConnectTo(BlockState, Direction)}
      *
      * <p>
      * {@link RedStoneWireBlock} updates its visual connection when
