@@ -129,7 +129,7 @@ public final class OptionalMod<T>
      * and if the result is non-null, return an {@code Optional} describing the
      * result.  Otherwise return an empty {@code Optional}.
      *
-     * @apiNote This method supports post-processing on optional values, without
+     * API Note: This method supports post-processing on optional values, without
      * the need to explicitly check for a return status.
      *
      * @param <U> The type of the result of the mapping function
@@ -203,7 +203,7 @@ public final class OptionalMod<T>
      * Return the contained mod object, if present, otherwise throw an exception
      * to be created by the provided supplier.
      *
-     * @apiNote A method reference to the exception constructor with an empty
+     * API Note: A method reference to the exception constructor with an empty
      * argument list can be used as the supplier. For example,
      * {@code IllegalStateException::new}
      *
