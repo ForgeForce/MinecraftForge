@@ -117,6 +117,7 @@ subprojects {
                 'implSpec:a:<em>Implementation Requirements:</em>',
                 'implNote:a:<em>Implementation Note:</em>'
         ]
+        options.addStringOption('Xdoclint:all,-missing', '-public')
     }
 
     publishing {
