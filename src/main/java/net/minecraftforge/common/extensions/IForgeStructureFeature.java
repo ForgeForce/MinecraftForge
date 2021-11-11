@@ -53,7 +53,7 @@ public interface IForgeStructureFeature
      *
      * @apiNote Implement this over {@link StructureFeature#getSpecialEnemies()}
      *
-     * @Deprecated Use {@link IForgeStructureFeature#getDefaultSpawnList(MobCategory)}
+     * @deprecated Use {@link IForgeStructureFeature#getDefaultSpawnList(MobCategory)}
      * TODO: Remove in 1.18
      */
     default List<MobSpawnSettings.SpawnerData> getDefaultSpawnList()
@@ -66,7 +66,7 @@ public interface IForgeStructureFeature
      *
      * @apiNote Implement this over {@link StructureFeature#getSpecialAnimals()}
      *
-     * @Deprecated Use {@link IForgeStructureFeature#getDefaultSpawnList(MobCategory)}
+     * @deprecated Use {@link IForgeStructureFeature#getDefaultSpawnList(MobCategory)}
      * TODO: Remove in 1.18
      */
     default List<MobSpawnSettings.SpawnerData> getDefaultCreatureSpawnList()

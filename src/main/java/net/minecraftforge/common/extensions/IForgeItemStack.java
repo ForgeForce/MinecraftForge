@@ -199,7 +199,7 @@ public interface IForgeItemStack extends ICapabilitySerializable<CompoundTag>
      * @param shield   The shield in question
      * @param entity   The LivingEntity holding the shield
      * @param attacker The LivingEntity holding the ItemStack
-     * @retrun True if this ItemStack can disable the shield in question.
+     * @return True if this ItemStack can disable the shield in question.
      */
     default boolean canDisableShield(ItemStack shield, LivingEntity entity, LivingEntity attacker)
     {

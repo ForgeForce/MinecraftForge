@@ -30,7 +30,7 @@ import javax.annotation.Nullable;
 
 /**
  * BabyEntitySpawnEvent is fired just before a baby entity is about to be spawned. <br>
- * Parents will have disengaged their relationship. {@link @Cancelable} <br>
+ * Parents will have disengaged their relationship. {@link Cancelable} <br>
  * It is possible to change the child completely by using {@link #setChild(AgeableMob)} <br>
  * This event is fired from {@link Animal#spawnChildFromBreeding(ServerLevel, Animal)} and
  * {@link net.minecraft.world.entity.animal.Fox#spawnChildFromBreeding(ServerLevel, Animal)} <br>

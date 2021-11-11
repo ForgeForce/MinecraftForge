@@ -682,7 +682,7 @@ public interface IForgeItem
      * @param shield   The shield in question
      * @param entity   The LivingEntity holding the shield
      * @param attacker The LivingEntity holding the ItemStack
-     * @retrun True if this ItemStack can disable the shield in question.
+     * @return True if this ItemStack can disable the shield in question.
      */
     default boolean canDisableShield(ItemStack stack, ItemStack shield, LivingEntity entity, LivingEntity attacker)
     {
