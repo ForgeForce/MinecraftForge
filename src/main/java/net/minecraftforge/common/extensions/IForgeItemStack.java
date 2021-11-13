@@ -115,7 +115,7 @@ public interface IForgeItemStack extends ICapabilitySerializable<CompoundTag>
 
     /**
      * Queries if an item can perform the given action.
-     * See {@link net.minecraftforge.common.ToolActions} for a description of each stock action
+     * See {@link ToolActions} for a description of each stock action
      * @param toolAction The action being queried
      * @return True if the stack can perform the action
      */
@@ -156,7 +156,7 @@ public interface IForgeItemStack extends ICapabilitySerializable<CompoundTag>
      * applies specifically to enchanting an item in the enchanting table and is
      * called when retrieving the list of possible enchantments for an item.
      * Enchantments may additionally (or exclusively) be doing their own checks in
-     * {@link net.minecraft.world.item.enchantment.Enchantment#canApplyAtEnchantingTable(ItemStack)};
+     * {@link Enchantment#canApplyAtEnchantingTable(ItemStack)};
      * check the individual implementation for reference. By default this will check
      * if the enchantment type is valid for this item type.
      *
@@ -181,7 +181,7 @@ public interface IForgeItemStack extends ICapabilitySerializable<CompoundTag>
     /**
      * Override this to set a non-default armor slot for an ItemStack, but <em>do
      * not use this to get the armor slot of said stack; for that, use
-     * {@link net.minecraft.world.entity.LivingEntity#getEquipmentSlotForItem(ItemStack)}.</em>
+     * {@link LivingEntity#getEquipmentSlotForItem(ItemStack)}.</em>
      *
      * @return the armor slot of the ItemStack, or {@code null} to let the default
      *         vanilla logic as per {@code LivingEntity.getSlotForItemStack(stack)}

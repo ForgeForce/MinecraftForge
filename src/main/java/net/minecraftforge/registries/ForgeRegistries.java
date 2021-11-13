@@ -58,11 +58,12 @@ import net.minecraft.world.level.levelgen.feature.treedecorators.TreeDecoratorTy
 import net.minecraftforge.common.Tags;
 import net.minecraftforge.common.loot.GlobalLootModifierSerializer;
 import net.minecraftforge.common.world.ForgeWorldType;
+import net.minecraftforge.fmllegacy.common.registry.GameRegistry;
 
 /**
  * A class that exposes static references to all vanilla and Forge registries.
  * Created to have a central place to access the registries directly if modders need.
- * It is still advised that if you are registering things to go through {@link net.minecraftforge.fmllegacy.common.registry.GameRegistry} register methods, but queries and iterations can use this.
+ * It is still advised that if you are registering things to go through {@link GameRegistry} register methods, but queries and iterations can use this.
  */
 public class ForgeRegistries
 {

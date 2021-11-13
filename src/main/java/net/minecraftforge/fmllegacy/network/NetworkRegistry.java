@@ -257,7 +257,7 @@ public class NetworkRegistry
     }
 
     /**
-     * Retrieve the {@link LoginPayload} list for dispatch during {@code FMLHandshakeHandler#tickLogin(Connection)} handling.
+     * Retrieve the {@link LoginPayload} list for dispatch during {@link FMLHandshakeHandler#tickLogin(Connection)} handling.
      * Dispatches {@link NetworkEvent.GatherLoginPayloadsEvent} to each {@link NetworkInstance}.
      *
      * @return The {@link LoginPayload} list

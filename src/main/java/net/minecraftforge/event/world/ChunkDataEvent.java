@@ -26,6 +26,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.chunk.ChunkStatus;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.storage.ChunkSerializer;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureManager;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.Cancelable;
@@ -64,7 +65,7 @@ public class ChunkDataEvent extends ChunkEvent
     /**
      * ChunkDataEvent.Load is fired when vanilla Minecraft attempts to load Chunk data.<br>
      * This event is fired during chunk loading in
-     * {@link net.minecraft.world.level.chunk.storage.ChunkSerializer#read(ServerLevel, StructureManager, PoiManager, ChunkPos, CompoundTag)} which means it is async, so be careful.<br>
+     * {@link ChunkSerializer#read(ServerLevel, StructureManager, PoiManager, ChunkPos, CompoundTag)} which means it is async, so be careful.<br>
      * <br>
      * This event is not {@link Cancelable}.<br>
      * <br>

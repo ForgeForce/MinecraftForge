@@ -19,6 +19,8 @@
 
 package net.minecraftforge.event.entity.living;
 
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.Cancelable;
@@ -29,8 +31,8 @@ import net.minecraft.world.entity.LivingEntity;
  * LivingDeathEvent is fired when an Entity dies. <br>
  * This event is fired whenever an Entity dies in
  * {@link LivingEntity#die(DamageSource)},
- * {@link net.minecraft.world.entity.player.Player#die(DamageSource)}, and
- * {@link net.minecraft.server.level.ServerPlayer#die(DamageSource)}. <br>
+ * {@link Player#die(DamageSource)}, and
+ * {@link ServerPlayer#die(DamageSource)}. <br>
  * <br>
  * This event is fired via the {@link ForgeHooks#onLivingDeath(LivingEntity, DamageSource)}.<br>
  * <br>

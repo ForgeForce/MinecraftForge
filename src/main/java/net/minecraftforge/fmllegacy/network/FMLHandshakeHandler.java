@@ -21,6 +21,8 @@ package net.minecraftforge.fmllegacy.network;
 
 import com.google.common.collect.Multimap;
 import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.handshake.ClientIntentionPacket;
+import net.minecraft.network.protocol.login.ClientboundCustomQueryPacket;
 import net.minecraft.network.protocol.login.ServerboundCustomQueryPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.chat.TextComponent;
@@ -49,13 +51,13 @@ import static net.minecraftforge.registries.ForgeRegistry.REGISTRIES;
 /**
  * Instance responsible for handling the overall FML network handshake.
  *
- * <p>An instance is created during {@link net.minecraft.network.protocol.handshake.ClientIntentionPacket} handling, and attached
+ * <p>An instance is created during {@link ClientIntentionPacket} handling, and attached
  * to the {@link Connection#channel()} via {@link FMLNetworkConstants#FML_HANDSHAKE_HANDLER}.
  *
  * <p>The {@link FMLNetworkConstants#handshakeChannel} is a {@link SimpleChannel} with standard messages flowing in both directions.
  *
- * <p>The {@link #loginWrapper} transforms these messages into {@link net.minecraft.network.protocol.login.ServerboundCustomQueryPacket}
- * and {@link net.minecraft.network.protocol.login.ClientboundCustomQueryPacket} compatible messages, by means of wrapping.
+ * <p>The {@link #loginWrapper} transforms these messages into {@link ServerboundCustomQueryPacket}
+ * and {@link ClientboundCustomQueryPacket} compatible messages, by means of wrapping.
  *
  * <p>The handshake is ticked {@code #tickLogin(NetworkManager)} from the {@link ServerLoginPacketListenerImpl#tick()} method,
  * utilizing the {@code ServerLoginPacketListenerImpl.State#NEGOTIATING} state, which is otherwise unused in vanilla code.
@@ -86,7 +88,7 @@ public class FMLHandshakeHandler {
     }
 
     /**
-     * Create a new handshake instance. Called when connection is first created during the {@link net.minecraft.network.protocol.handshake.ClientIntentionPacket}
+     * Create a new handshake instance. Called when connection is first created during the {@link ClientIntentionPacket}
      * handling.
      *
      * @param manager The network manager for this connection

@@ -23,6 +23,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Preconditions;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.BucketPickup;
 import net.minecraft.world.level.block.LiquidBlockContainer;
@@ -542,7 +543,7 @@ public class FluidUtil
      * Honors the amount of fluid contained by the used container.
      * Checks if water-like fluids should vaporize like in the nether.
      *
-     * Modeled after {@link net.minecraft.world.item.BucketItem#emptyContents(Player, Level, BlockPos, BlockHitResult)}
+     * Modeled after {@link BucketItem#emptyContents(Player, Level, BlockPos, BlockHitResult)}
      *
      * @param player      Player who places the fluid. May be null for blocks like dispensers.
      * @param world       Level to place the fluid in
@@ -629,7 +630,7 @@ public class FluidUtil
 
     /**
      * Destroys a block when a fluid is placed in the same position.
-     * Modeled after {@link net.minecraft.world.item.BucketItem#emptyContents(Player, Level, BlockPos, BlockHitResult)}
+     * Modeled after {@link BucketItem#emptyContents(Player, Level, BlockPos, BlockHitResult)}
      *
      * This is a helper method for implementing {@link IFluidBlock#place(Level, BlockPos, FluidStack, IFluidHandler.FluidAction)}.
      *

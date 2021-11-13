@@ -26,6 +26,7 @@ import java.util.function.Consumer;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.components.events.GuiEventListener;
+import net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 import net.minecraft.client.gui.screens.Screen;
@@ -218,7 +219,7 @@ public class GuiScreenEvent extends Event
     }
 
     /**
-     * This event fires in {@link net.minecraft.client.gui.screens.inventory.EffectRenderingInventoryScreen} in the
+     * This event fires in {@link EffectRenderingInventoryScreen} in the
      * {@code checkEffectRendering} method when potion effects are active and the gui wants to move over.
      * Cancel this event to prevent the Gui from being moved.
      */

@@ -64,7 +64,7 @@ public class EntitySelectorManager
     }
 
     /**
-     * This method is called in {@link EntitySelectorParser#parse} <br>
+     * This method is called in {@link EntitySelectorParser#parse()} <br>
      *
      * If the REGISTRY does not contain a custom selector for the command being parsed,
      * this method returns {@code null} and the vanilla logic in {@code EntitySelectorParser#parseSelector()} is used.

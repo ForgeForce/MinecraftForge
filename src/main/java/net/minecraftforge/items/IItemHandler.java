@@ -19,6 +19,7 @@
 
 package net.minecraftforge.items;
 
+import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.IFluidHandler;
@@ -100,7 +101,7 @@ public interface IItemHandler
 
     /**
      * <p>
-     * This function re-implements the vanilla function {@link net.minecraft.world.Container#canPlaceItem(int, ItemStack)}.
+     * This function re-implements the vanilla function {@link Container#canPlaceItem(int, ItemStack)}.
      * It should be used instead of simulated insertions in cases where the contents and state of the inventory are
      * irrelevant, mainly for the purpose of automation and logic (for instance, testing if a minecart can wait
      * to deposit its items into a full inventory, or if the items in the minecart can never be placed into the

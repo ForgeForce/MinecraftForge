@@ -92,7 +92,7 @@ public class LazyOptional<T>
     /**
      * This method hides an unchecked cast to the inferred type. Only use this if
      * you are sure the type should match. For capabilities, generally
-     * {@link net.minecraftforge.common.capabilities.Capability#orEmpty(Capability, LazyOptional)} should be used.
+     * {@link Capability#orEmpty(Capability, LazyOptional)} should be used.
      * 
      * @return This {@link LazyOptional}, cast to the inferred generic type
      */

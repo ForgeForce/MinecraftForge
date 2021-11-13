@@ -22,6 +22,7 @@ package net.minecraftforge.common;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.Map;
@@ -47,7 +48,7 @@ public final class PlantType
      *
      * <p>If your new plant grows on blocks like any one of them above, never create a new {@link PlantType}.
      * This Type is only functioning in
-     * {@link net.minecraft.world.level.block.Block#canSustainPlant(BlockState, BlockGetter, BlockPos, Direction, IPlantable)},
+     * {@link Block#canSustainPlant(BlockState, BlockGetter, BlockPos, Direction, IPlantable)},
      * which you are supposed to override this function in your new block and create a new plant type to grow on that block.
      *
      * This method can be called during parallel loading

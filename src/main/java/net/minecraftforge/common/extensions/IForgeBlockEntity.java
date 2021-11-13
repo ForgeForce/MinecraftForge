@@ -22,6 +22,7 @@ package net.minecraftforge.common.extensions;
 import javax.annotation.Nonnull;
 
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
+import net.minecraft.client.resources.model.BakedModel;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
@@ -171,7 +172,7 @@ public interface IForgeBlockEntity extends ICapabilitySerializable<CompoundTag>
 
     /**
      * Allows you to return additional model data.
-     * This data can be used to provide additional functionality in your {@link net.minecraft.client.resources.model.BakedModel}
+     * This data can be used to provide additional functionality in your {@link BakedModel}
      * You need to schedule a refresh of you model data via {@link #requestModelDataUpdate()} if the result of this function changes.
      * <b>Note that this method may be called on a chunk render thread instead of the main client thread</b>
      * @return Your model data

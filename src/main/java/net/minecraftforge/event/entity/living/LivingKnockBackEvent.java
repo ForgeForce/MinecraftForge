@@ -22,6 +22,8 @@ package net.minecraftforge.event.entity.living;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.Cancelable;
@@ -31,8 +33,8 @@ import net.minecraftforge.eventbus.api.Cancelable;
  * This event is fired whenever an Entity is knocked back in
  * {@link LivingEntity#hurt(DamageSource, float)},
  * {@code LivingEntity#blockUsingShield(LivingEntity)},
- * {@link net.minecraft.world.entity.Mob#doHurtTarget(Entity)} and
- * {@link net.minecraft.world.entity.player.Player#attack(Entity)} <br>
+ * {@link Mob#doHurtTarget(Entity)} and
+ * {@link Player#attack(Entity)} <br>
  * <br>
  * This event is fired via {@link ForgeHooks#onLivingKnockBack(LivingEntity, float, double, double)} .<br>
  * <br>
@@ -40,7 +42,7 @@ import net.minecraftforge.eventbus.api.Cancelable;
  * {@link #ratioX} contains the x ratio of the knock back. <br>
  * {@link #ratioZ} contains the z ratio of the knock back. <br>
  * <br>
- * This event is {@link net.minecraftforge.eventbus.api.Cancelable}.<br>
+ * This event is {@link Cancelable}.<br>
  * If this event is canceled, the entity is not knocked back.<br>
  * <br>
  * This event does not have a result. {@link HasResult}<br>

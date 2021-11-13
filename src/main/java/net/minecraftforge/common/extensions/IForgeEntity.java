@@ -22,6 +22,7 @@ package net.minecraftforge.common.extensions;
 import java.util.Collection;
 import javax.annotation.Nullable;
 
+import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.Entity;
@@ -174,7 +175,7 @@ public interface IForgeEntity extends ICapabilitySerializable<CompoundTag>
     /**
      * This is used to specify that your entity has multiple individual parts, such as the Vanilla Ender Dragon.
      *
-     * See {@link net.minecraft.world.entity.boss.enderdragon.EnderDragon} for an example implementation.
+     * See {@link EnderDragon} for an example implementation.
      * @return true if this is a multipart entity.
      */
     default boolean isMultipartEntity()
@@ -191,7 +192,7 @@ public interface IForgeEntity extends ICapabilitySerializable<CompoundTag>
      *
      * Only used if {@link #isMultipartEntity()} returns true.
      *
-     * See {@link net.minecraft.world.entity.boss.enderdragon.EnderDragon} for an example implementation.
+     * See {@link EnderDragon} for an example implementation.
      * @return The child parts of this entity. The value to be returned here should be cached.
      */
     @Nullable

@@ -20,6 +20,7 @@
 package net.minecraftforge.client.event;
 
 import com.google.common.base.Strings;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.ForgeEventFactory;
 import net.minecraftforge.eventbus.api.Cancelable;
@@ -28,7 +29,7 @@ import net.minecraftforge.eventbus.api.Event;
 /**
  * ClientChatEvent is fired whenever the client is about to send a chat message or command to the server. <br>
  * This event is fired via {@link ForgeEventFactory#onClientSendMessage(String)},
- * which is executed by {@link net.minecraft.client.gui.screens.Screen#sendMessage(String, boolean)}<br>
+ * which is executed by {@link Screen#sendMessage(String, boolean)}<br>
  * <br>
  * {@link #message} contains the message that will be sent to the server. This can be changed by mods.<br>
  * {@link #originalMessage} contains the original message that was going to be sent to the server. This cannot be changed by mods.<br>

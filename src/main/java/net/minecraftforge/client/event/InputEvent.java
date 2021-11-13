@@ -19,6 +19,7 @@
 
 package net.minecraftforge.client.event;
 
+import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.world.InteractionHand;
 import net.minecraftforge.eventbus.api.Cancelable;
@@ -216,7 +217,7 @@ public class InputEvent extends Event
 
         /**
          * Platform-specific scan code.
-         * Used for {@link com.mojang.blaze3d.platform.InputConstants#getKey(int, int)}
+         * Used for {@link InputConstants#getKey(int, int)}
          *
          * The scan code is unique for every key, regardless of whether it has a key code.
          * Scan codes are platform-specific but consistent over time, so keys will have different scan codes depending

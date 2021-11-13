@@ -23,10 +23,13 @@ import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.TagType;
+import net.minecraft.nbt.TagTypes;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelWriter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
@@ -38,10 +41,10 @@ import net.minecraft.world.level.chunk.LevelChunk;
 public class Constants
 {
     /**
-     * NBT Tag type IDS, used when storing the nbt to disc, Should align with {@link net.minecraft.nbt.TagTypes#getType(int)}
+     * NBT Tag type IDS, used when storing the nbt to disc, Should align with {@link TagTypes#getType(int)}
      * and {@link TagType#getPrettyName()}
      *
-     * Main use is checking tag type in {@link net.minecraft.nbt.CompoundTag#contains(String, int)}
+     * Main use is checking tag type in {@link CompoundTag#contains(String, int)}
      *
      */
     public static class NBT
@@ -63,7 +66,7 @@ public class Constants
     }
 
     /**
-     * The world event IDS, used when calling {@link net.minecraft.world.level.Level#globalLevelEvent(int, BlockPos, int)}. <br>
+     * The world event IDS, used when calling {@link Level#globalLevelEvent(int, BlockPos, int)}. <br>
      * Can be found from {@link LevelRenderer#globalLevelEvent(int, BlockPos, int)}<br>
      * Some of the events use the {@code data} parameter. If this is the case, an explanation of what {@code data} does is also provided
      */
@@ -130,7 +133,7 @@ public class Constants
         public static final int DISPENSER_SMOKE                 = 2000;
 
         /**
-         * {@code data} is the {@link net.minecraft.world.level.block.Block#getId(BlockState)}  state id} of the block broken
+         * {@code data} is the {@link Block#getId(BlockState)}  state id} of the block broken
          */
         public static final int BREAK_BLOCK_EFFECTS             = 2001;
         /**
@@ -158,7 +161,7 @@ public class Constants
 
     /**
      * The flags used when calling
-     * {@link net.minecraft.world.level.LevelWriter#setBlock(BlockPos, BlockState, int)}<br>
+     * {@link LevelWriter#setBlock(BlockPos, BlockState, int)}<br>
      * Can be found from {@link Level#setBlock(BlockPos, BlockState, int)} ,
      * {@link Level#markAndNotifyBlock(BlockPos, LevelChunk, BlockState, BlockState, int, int)}, and
      * {@link LevelRenderer#blockChanged(BlockGetter, BlockPos, BlockState, BlockState, int)}<br>

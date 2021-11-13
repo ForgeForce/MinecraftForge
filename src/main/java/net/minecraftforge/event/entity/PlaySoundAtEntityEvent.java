@@ -19,6 +19,7 @@
 
 package net.minecraftforge.event.entity;
 
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvent;
@@ -30,7 +31,7 @@ import net.minecraftforge.eventbus.api.Cancelable;
 /**
  * PlaySoundAtEntityEvent is fired a sound is to be played at an Entity<br>
  * This event is fired whenever a sound is set to be played at an Entity such as in
- * {@link net.minecraft.client.player.LocalPlayer#playSound(SoundEvent, float, float)} and
+ * {@link LocalPlayer#playSound(SoundEvent, float, float)} and
  * {@link Level#playSound(Player, double, double, double, SoundEvent, SoundSource, float, float)}.<br>
  * <br>
  * {@link #name} contains the name of the sound to be played at the Entity.<br>
