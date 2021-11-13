@@ -84,7 +84,8 @@ public @interface Mod
         enum Bus {
             /**
              * The main Forge Event Bus.
-             * See {@code MinecraftForge#EVENT_BUS}
+             *
+             * <p>See {@code MinecraftForge#EVENT_BUS}</p>
              */
             FORGE(Bindings.getForgeBus()),
             /**
