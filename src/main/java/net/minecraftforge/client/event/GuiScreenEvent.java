@@ -110,7 +110,7 @@ public class GuiScreenEvent extends Event
         }
 
         /**
-         * This event fires right after the {@code init()} method in {@link Screen}.
+         * This event fires right after {@code Screen#init()}.
          * This is a good place to alter a GuiScreen's component layout if desired.
          */
         public static class Post extends InitGuiEvent
