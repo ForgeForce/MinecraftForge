@@ -39,7 +39,6 @@ public abstract class PistonEvent extends BlockEvent
     /**
      * @param world
      * @param pos - The position of the piston
-     * @param direction - The direction of the piston
      * @param direction - The move direction of the piston
      */
     public PistonEvent(Level world, BlockPos pos, Direction direction, PistonMoveType moveType)
