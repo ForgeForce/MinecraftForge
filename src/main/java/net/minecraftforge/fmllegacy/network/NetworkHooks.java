@@ -33,6 +33,7 @@ import net.minecraft.tags.TagCollection;
 import net.minecraft.tags.TagContainer;
 import net.minecraft.network.chat.TextComponent;
 import net.minecraftforge.fml.util.thread.EffectiveSide;
+import net.minecraftforge.fmlclient.ConfigGuiHandler.ConfigGuiFactory;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -158,7 +159,7 @@ public class NetworkHooks
     /**
      * Request to open a GUI on the client, from the server
      *
-     * Refer to {@link net.minecraftforge.fml.IExtensionPoint.DisplayTest} for how to provide a function to consume
+     * Refer to {@link ConfigGuiFactory} for how to provide a function to consume
      * these GUI requests on the client.
      *
      * @param player The player to open the GUI for
@@ -172,7 +173,7 @@ public class NetworkHooks
     /**
      * Request to open a GUI on the client, from the server
      *
-     * Refer to {@link net.minecraftforge.fml.IExtensionPoint.DisplayTest} for how to provide a function to consume
+     * Refer to {@link ConfigGuiFactory} for how to provide a function to consume
      * these GUI requests on the client.
      *
      * @param player The player to open the GUI for
@@ -186,7 +187,7 @@ public class NetworkHooks
     /**
      * Request to open a GUI on the client, from the server
      *
-     * Refer to {@link net.minecraftforge.fml.IExtensionPoint.DisplayTest} for how to provide a function to consume
+     * Refer to {@link ConfigGuiFactory} for how to provide a function to consume
      * these GUI requests on the client.
      *
      * The maximum size for #extraDataWriter is 32600 bytes.
