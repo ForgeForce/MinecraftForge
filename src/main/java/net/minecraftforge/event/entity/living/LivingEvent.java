@@ -20,18 +20,18 @@
 package net.minecraftforge.event.entity.living;
 
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.animal.horse.Horse;
 import net.minecraftforge.common.ForgeHooks;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.Cancelable;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraftforge.event.entity.EntityEvent;
+import net.minecraftforge.eventbus.api.Event;
 
 import javax.annotation.Nullable;
 
 /**
  * LivingEvent is fired whenever an event involving Living entities occurs.<br>
- * If a method utilizes this {@link net.minecraftforge.eventbus.api.Event} as its parameter, the method will
+ * If a method utilizes this {@link Event} as its parameter, the method will
  * receive every child event of this class.<br>
  * <br>
  * All children of this event are fired on the {@link MinecraftForge#EVENT_BUS}.<br>
@@ -73,7 +73,7 @@ public class LivingEvent extends EntityEvent
     /**
      * LivingJumpEvent is fired when an Entity jumps.<br>
      * This event is fired whenever an Entity jumps in
-     * {@code LivingEntity#jumpFromGround()}, {@code net.minecraft.world.entity.monster.MagmaCube#jumpFromGround()},
+     * {@code LivingEntity#jumpFromGround()}, {@code MagmaCube#jumpFromGround()},
      * and {@code Horse#jumpFromGround()}.<br>
      * <br>
      * This event is fired via the {@link ForgeHooks#onLivingJump(LivingEntity)}.<br>

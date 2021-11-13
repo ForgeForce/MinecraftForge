@@ -29,7 +29,7 @@ import net.minecraftforge.eventbus.api.Cancelable;
  * LivingHurtEvent is fired when an Entity is set to be hurt. <br>
  * This event is fired whenever an Entity is hurt in
  * {@code LivingEntity#actuallyHurt(DamageSource, float)} and
- * {@code net.minecraft.world.entity.player.Player#actuallyHurt(DamageSource, float)}.<br>
+ * {@code Player#actuallyHurt(DamageSource, float)}.<br>
  * <br>
  * This event is fired via the {@link ForgeHooks#onLivingHurt(LivingEntity, DamageSource, float)}.<br>
  * <br>
