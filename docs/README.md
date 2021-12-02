@@ -18,9 +18,6 @@ Forge is a free, open-source modding API all of your favourite mods use!
 * [Discord]
 * [Documentation]
 
-#### Notes:
-- Introduced in 1.13 was a new FML, information found [here](NewFML.md).
-
 # Installing Forge
 
 Go to [the Forge website](https://files.minecraftforge.net)

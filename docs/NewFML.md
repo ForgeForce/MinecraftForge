@@ -1,5 +1,9 @@
 # FML
 
+> **The information in this document may be outdated** due to the various refactors and changes done to FML over the years.
+> 
+> It is recommended to take this document with a grain of salt, and to inspect the FML codebase for the current working logic.
+
 Entrypoint : ```FMLServiceProvider.onLoad```
 
 - Verify environment
