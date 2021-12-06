@@ -520,7 +520,6 @@ public class FluidUtil
      *
      * @param player    Player who places the fluid. May be null for blocks like dispensers.
      * @param world     Level to place the fluid in
-     * @param hand
      * @param pos       The position in the world to place the fluid block
      * @param container The fluid container holding the fluidStack to place
      * @param resource  The fluidStack to place
@@ -547,7 +546,6 @@ public class FluidUtil
      *
      * @param player      Player who places the fluid. May be null for blocks like dispensers.
      * @param world       Level to place the fluid in
-     * @param hand
      * @param pos         The position in the world to place the fluid block
      * @param fluidSource The fluid source holding the fluidStack to place
      * @param resource    The fluidStack to place.

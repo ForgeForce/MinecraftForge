@@ -200,7 +200,6 @@ public class ModelBuilder<T extends ModelBuilder<T>> extends ModelFile {
 
     /**
      * Use a custom loader instead of the vanilla elements.
-     * @param customLoaderFactory
      * @return the custom loader builder
      */
     public <L extends CustomLoaderBuilder<T>> L customLoader(BiFunction<T, ExistingFileHelper, L> customLoaderFactory)

@@ -104,12 +104,6 @@ public class ExistingFileHelper {
      * <p>
      * Only create a new helper if you intentionally want to ignore the existence of
      * other generated files.
-     * 
-     * @param existingPacks
-     * @param existingMods
-     * @param enable
-     * @param assetIndex
-     * @param assetsDir
      */
     public ExistingFileHelper(Collection<Path> existingPacks, final Set<String> existingMods, boolean enable, @Nullable final String assetIndex, @Nullable final File assetsDir) {
         this.clientResources = new SimpleReloadableResourceManager(PackType.CLIENT_RESOURCES);
