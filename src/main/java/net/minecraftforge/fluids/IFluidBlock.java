@@ -58,6 +58,7 @@ public interface IFluidBlock
      *
      * @param action
      *            If SIMULATE, the drain will only be simulated.
+     * @return the fluid stack after draining the block
      */
     @Nonnull
     FluidStack drain(Level world, BlockPos pos, IFluidHandler.FluidAction action);
