@@ -27,31 +27,11 @@ ext {
             keystore: project.properties.keystore
         ]
     }
-    MAPPING_CHANNEL = 'official'
-    MAPPING_VERSION = '1.18.1'
-    MC_VERSION = '1.18.1'
-    MCP_VERSION = '20211210.034407'
-    SPI_VERSION = '4.0.10'
-    ACCESSTRANSFORMERS_VERSION = '8.0.4'
-    COREMODS_VERSION = '5.0.1'
-    EVENTBUS_VERSION = '5.0.3'
-    MODLAUNCHER_VERSION = '9.0.7'
-    SECUREJARHANDLER_VERSION = '0.9.54'
-    BOOTSTRAPLAUNCHER_VERSION = '0.1.17'
-    ASM_VERSION = '9.1'
-    INSTALLER_VERSION = '2.1.+'
-    MIXIN_VERSION = '0.8.5'
 
     GIT_INFO = gradleutils.gitInfo
     VERSION = gradleutils.getFilteredMCTagOffsetBranchVersion(true, '[0-9]', MC_VERSION)
     // FML_VERSION = gradleutils.getFilteredMCTagOffsetBranchVersion(true, 'FML', MC_VERSION)
     FORGE_VERSION = VERSION.substring(MC_VERSION.length() + 1)
-
-    SPECIAL_SOURCE = 'net.md-5:SpecialSource:1.10.0'
-    BINPATCH_TOOL = 'net.minecraftforge:binarypatcher:1.0.12:fatjar'
-    INSTALLER_TOOLS = 'net.minecraftforge:installertools:1.2.10'
-    JAR_SPLITTER = 'net.minecraftforge:jarsplitter:1.1.4'
-    FART = 'net.minecraftforge:ForgeAutoRenamingTool:0.1.17:all'
 
     sharedDeps = {} as Closure
     extraTxts = []
