@@ -4,6 +4,7 @@ import groovy.json.JsonBuilder
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.objectweb.asm.ClassReader
@@ -60,5 +61,6 @@ abstract class BytecodeFinder extends DefaultTask {
     protected process(ClassNode parent, FieldNode node) {}
     protected process(ClassNode parent, MethodNode node) {}
     protected post() {}
+    @Internal
     protected abstract Object getData()
 }
