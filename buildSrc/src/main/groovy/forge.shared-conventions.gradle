@@ -1,0 +1,39 @@
+
+// Define manifests
+class ManifestsExtension {
+    Project project
+    Map<String, Map<String, String>> manifestMap = [:]
+
+    ManifestsExtension(Project project) {
+        this.project = project
+    }
+
+    Map<String, String> getAt(String key) {
+        if (key == null) key = ''
+        if (manifestMap[key] == null) manifestMap[key] = [:]
+        return manifestMap[key]
+    }
+
+    void putAt(String key, Map<String, String> manifestEntries) {
+        this[key].putAll(manifestEntries)
+    }
+
+    void configureForTask(TaskProvider<Jar> task) {
+        task.configure {
+            doFirst {
+                manifestMap.each { pkg, values ->
+                    if (pkg == '')
+                        manifest.attributes(values)
+                    else
+                        manifest.attributes(values, pkg)
+                }
+            }
+        }
+    }
+
+    void configureForTask(String taskName) {
+        configureForTask(project.tasks.named(taskName, Jar) as TaskProvider<Jar>)
+    }
+}
+
+project.extensions.create("manifests", ManifestsExtension)

@@ -1,0 +1,55 @@
+plugins {
+    id 'java-library'
+    id 'jacoco'
+    id 'com.github.ben-manes.versions'
+    id 'org.javamodularity.moduleplugin'
+    id 'forge.shared-conventions'
+}
+
+// Reject non-stable versions in the dependency updates reporting task
+def isNonStable = { String version ->
+    def stableKeyword = ['RELEASE', 'FINAL', 'GA'].any { ver -> version.toUpperCase().contains(ver) }
+    def regex = /^[0-9,.v-]+(-r)?$/
+    return !stableKeyword && !(version ==~ regex)
+}
+
+tasks.named('dependencyUpdates').configure {
+    rejectVersionIf {
+        isNonStable(it.candidate.version)
+    }
+}
+
+// Create and publish the sources jar
+java {
+    withSourcesJar()
+}
+
+// Configure manifests for jar task
+manifests.configureForTask('jar')
+
+// Define default manifest entries
+manifests[''] = [
+        'Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+        'Git-Commit': gradleutils.gitInfo.abbreviatedId,
+        'Git-Branch': gradleutils.gitInfo.branch,
+        'Build-Number': "${System.getenv('BUILD_NUMBER')?:0}"
+]
+
+// Prevent the compiler from complaining about unchecked casts
+// TODO: unchecked warnings should be suppressed in the relevant code, not project-wide
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs << '-Xlint:unchecked'
+}
+
+// Add jar and sources jar as artifacts to the archives configuration
+//artifacts {
+//    archives jar
+//    archives sourcesJar
+//}
+
+// Add java components (jar and sources jar) to mavenJava publication
+publishing {
+    publications.named('mavenJava', MavenPublication) {
+        from components.java
+    }
+}
