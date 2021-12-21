@@ -1,0 +1,40 @@
+apply plugin: 'net.minecraftforge.gradle.patcher'
+tasks.withType(AbstractPublishToMaven.class).forEach{tsk -> tsk.enabled = false } // We don't want to publish anything
+
+dependencies {
+    implementation 'net.minecraftforge:forgespi:' + rootProject.SPI_VERSION
+}
+
+patcher {
+    parent = project(':mcp')
+    mcVersion = rootProject.MC_VERSION
+    patchedSrc = file('src/main/java')
+
+    mappings channel: rootProject.MAPPING_CHANNEL, version: rootProject.MAPPING_VERSION
+
+    runs {
+        clean_client {
+            client true
+            taskName 'clean_client'
+            ideaModule "${rootProject.name}.${project.name}.main"
+
+            main 'net.minecraft.client.main.Main'
+            workingDirectory project.file('run')
+
+            args '--gameDir', '.'
+            args '--version', rootProject.MC_VERSION
+            args '--assetsDir', downloadAssets.output
+            args '--assetIndex', '{asset_index}'
+            args '--accessToken', '0'
+        }
+
+        clean_server {
+            client false
+            taskName 'clean_server'
+            ideaModule "${rootProject.name}.${project.name}.main"
+
+            main 'net.minecraft.server.Main'
+            workingDirectory project.file('run')
+        }
+    }
+}

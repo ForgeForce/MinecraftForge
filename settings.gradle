@@ -18,6 +18,15 @@ include ':fmlonly'
 include ':forge'
 
 project(":mcp").projectDir = file("projects/mcp")
+project(":mcp").buildFileName = "../../project-mcp.gradle"
+
 project(":clean").projectDir = file("projects/clean")
+project(":clean").buildFileName = "../../project-clean.gradle"
+
 project(":fmlonly").projectDir = file("projects/fmlonly")
+def symlink = file("$rootDir/fmlonly/src/fmlcommon")
+if (symlink.exists() && symlink.directory) // Only configure fmlonly project if symlink is valid
+project(":fmlonly").buildFileName = "../../project-fmlonly.gradle"
+
 project(":forge").projectDir = file("projects/forge")
+project(":forge").buildFileName = "../../project-forge.gradle"
