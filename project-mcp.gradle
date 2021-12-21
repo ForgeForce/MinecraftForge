@@ -1,4 +1,7 @@
-apply plugin: 'net.minecraftforge.gradle.mcp'
+plugins {
+    id 'net.minecraftforge.gradle.mcp'
+}
+
 tasks.withType(AbstractPublishToMaven.class).forEach{tsk -> tsk.enabled = false } // We don't want to publish anything
 mcp {
     config rootProject.MC_VERSION + '-' + rootProject.MCP_VERSION

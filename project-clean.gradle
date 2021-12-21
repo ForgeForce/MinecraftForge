@@ -1,4 +1,7 @@
-apply plugin: 'net.minecraftforge.gradle.patcher'
+plugins {
+    id 'net.minecraftforge.gradle.patcher'
+}
+
 tasks.withType(AbstractPublishToMaven.class).forEach{tsk -> tsk.enabled = false } // We don't want to publish anything
 
 dependencies {

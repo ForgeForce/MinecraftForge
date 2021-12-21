@@ -3,6 +3,16 @@ pluginManagement {
         gradlePluginPortal()
         maven { url = 'https://maven.minecraftforge.net/' }
     }
+    resolutionStrategy.eachPlugin {
+        switch (requested.id.toString()) {
+            case 'net.minecraftforge.gradle':
+            case 'net.minecraftforge.gradle.mcp':
+            case 'net.minecraftforge.gradle.patcher': {
+                useModule("net.minecraftforge.gradle:ForgeGradle:${requested.version}")
+                break
+            }
+        }
+    }
 }
 
 rootProject.name = 'ForgeRoot'

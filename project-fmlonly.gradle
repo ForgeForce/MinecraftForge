@@ -5,8 +5,10 @@ import net.minecraftforge.forge.tasks.Util
 
 import static net.minecraftforge.forge.tasks.Util.getClasspath
 
-apply plugin: 'java-library'
-apply plugin: 'net.minecraftforge.gradle.patcher'
+plugins {
+    id 'java-library'
+    id 'net.minecraftforge.gradle.patcher'
+}
 
 ext {
     MCP_ARTIFACT = project.provider { project(':mcp') }.flatMap { it.mcp.config }
