@@ -9,11 +9,7 @@ buildscript {
     }
 }
 
-import groovy.json.JsonBuilder
-
 import java.nio.file.Files
-import java.util.Date
-import java.util.LinkedHashMap
 import net.minecraftforge.forge.tasks.*
 import static net.minecraftforge.forge.tasks.Util.*
 import net.minecraftforge.gradle.common.tasks.ApplyBinPatches
@@ -69,21 +65,26 @@ ext {
     INSTALLER_TOOLS = 'net.minecraftforge:installertools:1.2.10'
     JAR_SPLITTER = 'net.minecraftforge:jarsplitter:1.1.4'
     FART = 'net.minecraftforge:ForgeAutoRenamingTool:0.1.17:all'
+
+    sharedDeps = {} as Closure
+    extraTxts = []
+    changelogFile = null as File
+    sharedFmlonlyForge = {} as Closure
 }
 
-println('Version: ' + VERSION +
+println('Version: ' + rootProject.VERSION +
         ' Java: ' + System.getProperty('java.version') +
         ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ')' +
         ' Arch: ' + System.getProperty('os.arch'))
 
-def extraTxts = [
+extraTxts = [
     rootProject.file('CREDITS.txt'),
     rootProject.file('LICENSE.txt')
 ]
 
-def changelog = rootProject.file('build/changelog.txt')
-if (changelog.exists())
-    extraTxts += changelog
+changelogFile = rootProject.file('build/changelog.txt')
+if (changelogFile.exists())
+    extraTxts += changelogFile
 
 task downloadVersionManifest(type: Download) {
     src 'https://launchermeta.mojang.com/mc/game/version_manifest_v2.json'
@@ -104,7 +105,7 @@ task downloadJson(type: Download, dependsOn: downloadVersionManifest) {
     task "download${id.capitalize()}Raw"(type: Download, dependsOn: downloadJson) {
         inputs.file downloadJson.dest
         src { downloadJson.dest.json.downloads.get(id).url }
-        dest file("build/versions/${MC_VERSION}/${id}.jar")
+        dest file("build/versions/${rootProject.MC_VERSION}/${id}.jar")
         useETag 'all'
         onlyIfModified true
         quiet true
@@ -117,7 +118,7 @@ subprojects {
     apply plugin: 'java'
 
     group = 'net.minecraftforge'
-    version = VERSION
+    version = rootProject.VERSION
     //println(name + ' Version: ' + version)
 
     ext {
@@ -204,7 +205,7 @@ project(':mcp') {
     apply plugin: 'net.minecraftforge.gradle.mcp'
     tasks.withType(AbstractPublishToMaven.class).forEach{tsk -> tsk.enabled = false } // We don't want to publish anything
     mcp {
-        config MC_VERSION + '-' + MCP_VERSION
+        config rootProject.MC_VERSION + '-' + rootProject.MCP_VERSION
         pipeline = 'joined'
     }
 }
@@ -215,15 +216,15 @@ project(':clean') {
     tasks.withType(AbstractPublishToMaven.class).forEach{tsk -> tsk.enabled = false } // We don't want to publish anything
 
     dependencies {
-        implementation 'net.minecraftforge:forgespi:' + SPI_VERSION
+        implementation 'net.minecraftforge:forgespi:' + rootProject.SPI_VERSION
     }
 
     patcher {
         parent = project(':mcp')
-        mcVersion = MC_VERSION
+        mcVersion = rootProject.MC_VERSION
         patchedSrc = file('src/main/java')
 
-        mappings channel: MAPPING_CHANNEL, version: MAPPING_VERSION
+        mappings channel: rootProject.MAPPING_CHANNEL, version: rootProject.MAPPING_VERSION
 
         runs {
             clean_client {
@@ -235,7 +236,7 @@ project(':clean') {
                 workingDirectory project.file('run')
 
                 args '--gameDir', '.'
-                args '--version', MC_VERSION
+                args '--version', rootProject.MC_VERSION
                 args '--assetsDir', downloadAssets.output
                 args '--assetIndex', '{asset_index}'
                 args '--accessToken', '0'
@@ -253,27 +254,27 @@ project(':clean') {
     }
 }
 
-def sharedDeps = {
-    moduleonly "cpw.mods:securejarhandler:${SECUREJARHANDLER_VERSION}"
-    moduleonly "org.ow2.asm:asm:${ASM_VERSION}"
-    moduleonly "org.ow2.asm:asm-commons:${ASM_VERSION}"
-    moduleonly "org.ow2.asm:asm-tree:${ASM_VERSION}"
-    moduleonly "org.ow2.asm:asm-util:${ASM_VERSION}"
-    moduleonly "org.ow2.asm:asm-analysis:${ASM_VERSION}"
-    moduleonly "cpw.mods:bootstraplauncher:${BOOTSTRAPLAUNCHER_VERSION}"
+sharedDeps = {
+    moduleonly "cpw.mods:securejarhandler:${rootProject.SECUREJARHANDLER_VERSION}"
+    moduleonly "org.ow2.asm:asm:${rootProject.ASM_VERSION}"
+    moduleonly "org.ow2.asm:asm-commons:${rootProject.ASM_VERSION}"
+    moduleonly "org.ow2.asm:asm-tree:${rootProject.ASM_VERSION}"
+    moduleonly "org.ow2.asm:asm-util:${rootProject.ASM_VERSION}"
+    moduleonly "org.ow2.asm:asm-analysis:${rootProject.ASM_VERSION}"
+    moduleonly "cpw.mods:bootstraplauncher:${rootProject.BOOTSTRAPLAUNCHER_VERSION}"
 
-    installer "cpw.mods:securejarhandler:${SECUREJARHANDLER_VERSION}"
-    installer "org.ow2.asm:asm:${ASM_VERSION}"
-    installer "org.ow2.asm:asm-commons:${ASM_VERSION}"
-    installer "org.ow2.asm:asm-tree:${ASM_VERSION}"
-    installer "org.ow2.asm:asm-util:${ASM_VERSION}"
-    installer "org.ow2.asm:asm-analysis:${ASM_VERSION}"
-    installer "net.minecraftforge:accesstransformers:${ACCESSTRANSFORMERS_VERSION}"
+    installer "cpw.mods:securejarhandler:${rootProject.SECUREJARHANDLER_VERSION}"
+    installer "org.ow2.asm:asm:${rootProject.ASM_VERSION}"
+    installer "org.ow2.asm:asm-commons:${rootProject.ASM_VERSION}"
+    installer "org.ow2.asm:asm-tree:${rootProject.ASM_VERSION}"
+    installer "org.ow2.asm:asm-util:${rootProject.ASM_VERSION}"
+    installer "org.ow2.asm:asm-analysis:${rootProject.ASM_VERSION}"
+    installer "net.minecraftforge:accesstransformers:${rootProject.ACCESSTRANSFORMERS_VERSION}"
     installer 'org.antlr:antlr4-runtime:4.9.1' //Dep of AccessTransformer
-    installer "net.minecraftforge:eventbus:${EVENTBUS_VERSION}"
-    installer "net.minecraftforge:forgespi:${SPI_VERSION}"
-    installer "net.minecraftforge:coremods:${COREMODS_VERSION}"
-    installer "cpw.mods:modlauncher:${MODLAUNCHER_VERSION}"
+    installer "net.minecraftforge:eventbus:${rootProject.EVENTBUS_VERSION}"
+    installer "net.minecraftforge:forgespi:${rootProject.SPI_VERSION}"
+    installer "net.minecraftforge:coremods:${rootProject.COREMODS_VERSION}"
+    installer "cpw.mods:modlauncher:${rootProject.MODLAUNCHER_VERSION}"
     installer 'net.minecraftforge:unsafe:0.2.+'
     installer 'com.electronwill.night-config:core:3.6.4'
     installer 'com.electronwill.night-config:toml:3.6.4'
@@ -287,7 +288,7 @@ def sharedDeps = {
     installer 'org.jline:jline-reader:3.12.+'   //Dep of TerminaalConsoleeAppender
     installer 'org.jline:jline-terminal:3.12.+' //Dep of TerminaalConsoleeAppender
     installer 'net.sf.jopt-simple:jopt-simple:5.0.4'
-    installer "org.spongepowered:mixin:${MIXIN_VERSION}"
+    installer "org.spongepowered:mixin:${rootProject.MIXIN_VERSION}"
     installer 'org.openjdk.nashorn:nashorn-core:15.3'
     installer 'com.google.guava:guava:31.0.1-jre'
     installer 'com.google.code.gson:gson:2.8.8'
@@ -300,21 +301,21 @@ def sharedDeps = {
     */
 }
 
-def sharedFmlonlyForge = { Project prj ->
+sharedFmlonlyForge = { Project prj ->
     ['Client', 'Server', 'Joined'].each { side ->
         ['slim', 'extra'].each { type ->
             prj.task([type: DownloadMavenArtifact], "download${side}${type.capitalize()}") {
-                artifact = "net.minecraft:${side.toLowerCase()}:${MC_VERSION}-${MCP_VERSION}:${type}"
+                artifact = "net.minecraft:${side.toLowerCase()}:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:${type}"
             }
         }
 
         if (side.equals('Joined')) {
             prj.task([type: DownloadMavenArtifact], "createJoinedSRG") {
-                artifact = "net.minecraft:joined:${MC_VERSION}-${MCP_VERSION}:srg"
+                artifact = "net.minecraft:joined:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:srg"
             }
         } else {
             prj.task([type: RenameJar, dependsOn: prj.tasks.createMcp2Srg], "create${side}SRG") {
-                tool = FART
+                tool = rootProject.FART
                 args = [
                         '--input', '{input}',
                         '--output', '{output}',
@@ -330,18 +331,18 @@ def sharedFmlonlyForge = { Project prj ->
         def gen = prj.tasks.getByName("gen${side}BinPatches")
         def createSRG = prj.tasks.getByName("create${side}SRG")
         gen.dependsOn(createSRG)
-        gen.tool = BINPATCH_TOOL
+        gen.tool = rootProject.BINPATCH_TOOL
         gen.cleanJar = createSRG.output
 
         prj.task([type: ApplyBinPatches, dependsOn: gen], "apply${side}BinPatches") {
             clean = gen.cleanJar
             patch = gen.output
-            tool = BINPATCH_TOOL
+            tool = rootProject.BINPATCH_TOOL
         }
     }
 
     prj.task([type: DownloadMavenArtifact], 'downloadInstaller') {
-        artifact = "net.minecraftforge:installer:${INSTALLER_VERSION}:shrunk"
+        artifact = "net.minecraftforge:installer:${rootProject.INSTALLER_VERSION}:shrunk"
         changing = true
     }
 
@@ -349,9 +350,9 @@ def sharedFmlonlyForge = { Project prj ->
         [prj.tasks.universalJar, prj.tasks.installerJar].each { t ->
             def signTask = prj.task([type: SignJar, dependsOn: t], "sign${t.name.capitalize()}") {
                 onlyIf {
-                    JAR_SIGNER != null && t.state.failure == null
+                    rootProject.JAR_SIGNER != null && t.state.failure == null
                 }
-                def jarsigner = JAR_SIGNER == null ? [:] : JAR_SIGNER
+                def jarsigner = rootProject.JAR_SIGNER == null ? [:] : rootProject.JAR_SIGNER
                 alias = 'forge'
                 storePass = jarsigner.storepass
                 keyPass = jarsigner.keypass
@@ -416,10 +417,10 @@ def sharedFmlonlyForge = { Project prj ->
         run.main 'cpw.mods.bootstraplauncher.BootstrapLauncher'
 
         run.args '--gameDir', '.'
-        run.args '--fml.forgeVersion', FORGE_VERSION
-        run.args '--fml.mcVersion', MC_VERSION
+        run.args '--fml.forgeVersion', rootProject.FORGE_VERSION
+        run.args '--fml.mcVersion', rootProject.MC_VERSION
         run.args '--fml.forgeGroup', prj.group
-        run.args '--fml.mcpVersion', MCP_VERSION
+        run.args '--fml.mcpVersion', rootProject.MCP_VERSION
 
         if (run.name.contains('client')) {
             run.client true
@@ -480,9 +481,9 @@ def sharedFmlonlyForge = { Project prj ->
     def tokens = [
             TASK:          prj.name.equals('forge') ? 'forgeserver' : 'fmlserver',
             MAVEN_PATH:    prj.ext.MAVEN_PATH.toString(),
-            FORGE_VERSION: FORGE_VERSION,
-            MC_VERSION:    MC_VERSION,
-            MCP_VERSION:   MCP_VERSION,
+            FORGE_VERSION: rootProject.FORGE_VERSION,
+            MC_VERSION:    rootProject.MC_VERSION,
+            MCP_VERSION:   rootProject.MCP_VERSION,
             FORGE_GROUP:   prj.group,
             IGNORE_LIST: Util.getArtifacts(prj, prj.configurations.moduleonly, false).values().collect{it.downloads.artifact.path.rsplit('/', 1)[1]}.join(','),
             MODULES: 'ALL-MODULE-PATH'
@@ -493,7 +494,7 @@ def sharedFmlonlyForge = { Project prj ->
             def CLASS_PATH = Util.getArtifacts(prj, prj.configurations.installer, false).values().collect{"libraries/${it.downloads.artifact.path}"} +
             [
                 'libraries/' + Util.getMavenPath(rootProject.tasks.findByPath(':fmlloader:jar')),
-                "libraries/net/minecraft/server/${MC_VERSION}-${MCP_VERSION}/server-${MC_VERSION}-${MCP_VERSION}-extra.jar"
+                "libraries/net/minecraft/server/${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}/server-${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}-extra.jar"
             ]
             def claimed = CLASS_PATH.collect{ it.rsplit('/', 2)[0] }.toSet() // Allow us to override versions
             try (def zip = new java.util.zip.ZipFile(rootProject.downloadServerRaw.dest)) {
@@ -522,8 +523,8 @@ def sharedFmlonlyForge = { Project prj ->
                 exclude 'args.txt'
                 filter(ReplaceTokens, tokens: tokens)
                 into('data/')
-                //rename 'run.sh',  "run_forge_${VERSION.replace('-', '_').sh"
-                //rename 'run.bat', "run_forge_${VERSION.replace('-', '_').bat"
+                //rename 'run.sh',  "run_forge_${rootProject.VERSION.replace('-', '_').sh"
+                //rename 'run.bat', "run_forge_${rootProject.VERSION.replace('-', '_').bat"
             }
         }
     }
@@ -539,9 +540,9 @@ project(':fmlonly') {
     apply plugin: 'net.minecraftforge.gradle.patcher'
 
     ext {
-        MCP_ARTIFACT = project(':mcp').mcp.config.get()
+        MCP_ARTIFACT = project.provider { project(':mcp') }.flatMap { it.mcp.config }
         PACKED_DEPS = [':fmlcore:jar', ':fmlloader:jar', ':javafmllanguage:jar', ':mclanguage:jar']
-        MAVEN_PATH = "${group.replace('.', '/')}/${project.name}/${VERSION}"
+        MAVEN_PATH = "${group.replace('.', '/')}/${project.name}/${rootProject.VERSION}"
     }
 
     sourceSets {
@@ -570,16 +571,16 @@ project(':fmlonly') {
         implementation project(':fmlloader')
         implementation project(':javafmllanguage')
         implementation project(':mclanguage')
-        runtimeOnly "cpw.mods:bootstraplauncher:${BOOTSTRAPLAUNCHER_VERSION}"
+        runtimeOnly "cpw.mods:bootstraplauncher:${rootProject.BOOTSTRAPLAUNCHER_VERSION}"
     }
-    dependencies sharedDeps
+    dependencies rootProject.sharedDeps
 
     patcher {
         parent = project(':mcp')
-        mcVersion = MC_VERSION
+        mcVersion = rootProject.MC_VERSION
         patchedSrc = file('src/main/java')
 
-        mappings channel: MAPPING_CHANNEL, version: MAPPING_VERSION
+        mappings channel: rootProject.MAPPING_CHANNEL, version: rootProject.MAPPING_VERSION
         runs {
             fmlonly_client {
                 args '--launchTarget', 'fmlclientdev'
@@ -600,7 +601,7 @@ project(':fmlonly') {
         }
     }
 
-    sharedFmlonlyForge.call(project)
+    rootProject.sharedFmlonlyForge.call(project)
 
     task launcherJson(type: LauncherJson) {
         packedDependencies = [':fmlloader:jar']
@@ -613,14 +614,14 @@ project(':fmlonly') {
                 releaseTime: timestamp,
                 type: 'release',
                 mainClass: 'cpw.mods.bootstraplauncher.BootstrapLauncher',
-                inheritsFrom: MC_VERSION,
+                inheritsFrom: rootProject.MC_VERSION,
                 logging: {},
                 arguments: [
                     game: ['--launchTarget', 'fmlclient',
-                           '--fml.forgeVersion', FORGE_VERSION,
-                           '--fml.mcVersion', MC_VERSION,
+                           '--fml.forgeVersion', rootProject.FORGE_VERSION,
+                           '--fml.mcVersion', rootProject.MC_VERSION,
                            '--fml.forgeGroup', project.group,
-                           '--fml.mcpVersion', MCP_VERSION],
+                           '--fml.mcpVersion', rootProject.MCP_VERSION],
                     jvm: ["-DignoreList=${fmlonly_client.properties.ignoreList},\${version_name}.jar",
                           "-DmergeModules=${fmlonly_client.properties.mergeModules}",
                           '-DlibraryDirectory=${library_directory}',
@@ -642,66 +643,67 @@ project(':fmlonly') {
 
         doFirst {
             def libs = libraries
+            net.minecraftforge.gradle.common.util.Artifact mcpArtifact = MCP_ARTIFACT.get()
             json = [
                 _comment_: launcherJson.comment,
                 spec: 1,
                 profile: project.name,
                 version: launcherJson.id,
                 path: null,
-                minecraft: MC_VERSION,
+                minecraft: rootProject.MC_VERSION,
                 serverJarPath: '{LIBRARY_DIR}/net/minecraft/server/{MINECRAFT_VERSION}/server-{MINECRAFT_VERSION}.jar',
                 welcome: "Welcome to the simple FML installer.",
                 data: [
                     MAPPINGS: [
-                        client: "[${MCP_ARTIFACT.group}:${MCP_ARTIFACT.name}:${MCP_ARTIFACT.version}:mappings@txt]",
-                        server: "[${MCP_ARTIFACT.group}:${MCP_ARTIFACT.name}:${MCP_ARTIFACT.version}:mappings@txt]"
+                        client: "[${mcpArtifact.group}:${mcpArtifact.name}:${mcpArtifact.version}:mappings@txt]",
+                        server: "[${mcpArtifact.group}:${mcpArtifact.name}:${mcpArtifact.version}:mappings@txt]"
                     ],
                     MOJMAPS: [
-                        client: "[net.minecraft:client:${MC_VERSION}-${MCP_VERSION}:mappings@txt]",
-                        server: "[net.minecraft:server:${MC_VERSION}-${MCP_VERSION}:mappings@txt]"
+                        client: "[net.minecraft:client:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:mappings@txt]",
+                        server: "[net.minecraft:server:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:mappings@txt]"
                     ],
                     MERGED_MAPPINGS: [
-                        client: "[${MCP_ARTIFACT.group}:${MCP_ARTIFACT.name}:${MCP_ARTIFACT.version}:mappings-merged@txt]",
-                        server: "[${MCP_ARTIFACT.group}:${MCP_ARTIFACT.name}:${MCP_ARTIFACT.version}:mappings-merged@txt]"
+                        client: "[${mcpArtifact.group}:${mcpArtifact.name}:${mcpArtifact.version}:mappings-merged@txt]",
+                        server: "[${mcpArtifact.group}:${mcpArtifact.name}:${mcpArtifact.version}:mappings-merged@txt]"
                     ],
                     MC_UNPACKED: [
-                        client: "[net.minecraft:client:${MC_VERSION}-${MCP_VERSION}:unpacked]",
-                        server: "[net.minecraft:server:${MC_VERSION}-${MCP_VERSION}:unpacked]"
+                        client: "[net.minecraft:client:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:unpacked]",
+                        server: "[net.minecraft:server:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:unpacked]"
                     ],
                     MC_SLIM: [
-                        client: "[net.minecraft:client:${MC_VERSION}-${MCP_VERSION}:slim]",
-                        server: "[net.minecraft:server:${MC_VERSION}-${MCP_VERSION}:slim]"
+                        client: "[net.minecraft:client:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:slim]",
+                        server: "[net.minecraft:server:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:slim]"
                     ],
                     MC_SLIM_SHA: [
                         client: "'${downloadClientSlim.output.get().asFile.sha1()}'",
                         server: "'${downloadServerSlim.output.get().asFile.sha1()}'"
                     ],
                     MC_EXTRA: [
-                        client: "[net.minecraft:client:${MC_VERSION}-${MCP_VERSION}:extra]",
-                        server: "[net.minecraft:server:${MC_VERSION}-${MCP_VERSION}:extra]"
+                        client: "[net.minecraft:client:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:extra]",
+                        server: "[net.minecraft:server:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:extra]"
                     ],
                     MC_EXTRA_SHA: [
                         client: "'${downloadClientExtra.output.get().asFile.sha1()}'",
                         server: "'${downloadServerExtra.output.get().asFile.sha1()}'"
                     ],
                     MC_SRG: [
-                        client: "[net.minecraft:client:${MC_VERSION}-${MCP_VERSION}:srg]",
-                        server: "[net.minecraft:server:${MC_VERSION}-${MCP_VERSION}:srg]"
+                        client: "[net.minecraft:client:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:srg]",
+                        server: "[net.minecraft:server:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:srg]"
                     ],
                     /*MC_SRG_SHA: [
                         client: "'${createClientSRG.output.sha1()}'",
                         server: "'${createServerSRG.output.sha1()}'"
                     ],*/
                     MCP_VERSION: [
-                        client: "'${MCP_VERSION}'",
-                        server: "'${MCP_VERSION}'"
+                        client: "'${rootProject.MCP_VERSION}'",
+                        server: "'${rootProject.MCP_VERSION}'"
                     ]
                 ],
                 processors: [
                     [
                         sides: ['server'],
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'EXTRACT_FILES',
                             '--archive', '{INSTALLER}',
@@ -709,14 +711,14 @@ project(':fmlonly') {
                             '--from', 'data/run.sh',
                             '--to',   '{ROOT}/run.sh',
                             '--exec', '{ROOT}/run.sh',
-                            //'--from', "data/run_fml_${VERSION.replace('-', '_').sh",
-                            //'--to',   '{ROOT}/run_fml_${VERSION.replace('-', '_').sh',
-                            //'--exec', '{ROOT}/run_fml_${VERSION.replace('-', '_').sh',
+                            //'--from', "data/run_fml_${rootProject.VERSION.replace('-', '_').sh",
+                            //'--to',   '{ROOT}/run_fml_${rootProject.VERSION.replace('-', '_').sh',
+                            //'--exec', '{ROOT}/run_fml_${rootProject.VERSION.replace('-', '_').sh',
 
                             '--from', 'data/run.bat',
                             '--to',   '{ROOT}/run.bat',
-                            //'--from', 'data/run_fml_${VERSION.replace('-', '_').bat',
-                            //'--to',   '{ROOT}/run_fml_${VERSION.replace('-', '_').bat',
+                            //'--from', 'data/run_fml_${rootProject.VERSION.replace('-', '_').bat',
+                            //'--to',   '{ROOT}/run_fml_${rootProject.VERSION.replace('-', '_').bat',
 
                             '--from',     'data/user_jvm_args.txt',
                             '--to',       '{ROOT}/user_jvm_args.txt',
@@ -730,8 +732,8 @@ project(':fmlonly') {
                         ]
                     ], [
                         sides: ['server'],
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'BUNDLER_EXTRACT',
                             '--input', '{MINECRAFT_JAR}',
@@ -740,8 +742,8 @@ project(':fmlonly') {
                         ]
                     ], [
                         sides: ['server'],
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'BUNDLER_EXTRACT',
                             '--input', '{MINECRAFT_JAR}',
@@ -749,26 +751,26 @@ project(':fmlonly') {
                             '--jar-only'
                         ]
                     ], [
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'MCP_DATA',
-                            '--input', "[${MCP_ARTIFACT.descriptor}]",
+                            '--input', "[${mcpArtifact.descriptor}]",
                             '--output', '{MAPPINGS}',
                             '--key', 'mappings'
                         ]
                     ], [
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'DOWNLOAD_MOJMAPS',
-                            '--version', MC_VERSION,
+                            '--version', rootProject.MC_VERSION,
                             '--side', '{SIDE}',
                             '--output', '{MOJMAPS}'
                         ]
                     ], [
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'MERGE_MAPPING',
                             '--left', '{MAPPINGS}',
@@ -778,8 +780,8 @@ project(':fmlonly') {
                         ]
                     ], [
                         sides: ['client'],
-                        jar: JAR_SPLITTER,
-                        classpath: getClasspath(project, libs, JAR_SPLITTER),
+                        jar: rootProject.JAR_SPLITTER,
+                        classpath: getClasspath(project, libs, rootProject.JAR_SPLITTER),
                         args: [
                             '--input', '{MINECRAFT_JAR}',
                             '--slim',  '{MC_SLIM}',
@@ -792,8 +794,8 @@ project(':fmlonly') {
                         ]
                     ], [
                         sides: ['server'],
-                        jar: JAR_SPLITTER,
-                        classpath: getClasspath(project, libs, JAR_SPLITTER),
+                        jar: rootProject.JAR_SPLITTER,
+                        classpath: getClasspath(project, libs, rootProject.JAR_SPLITTER),
                         args: [
                             '--input', '{MC_UNPACKED}',
                             '--slim',  '{MC_SLIM}',
@@ -805,8 +807,8 @@ project(':fmlonly') {
                             '{MC_EXTRA}': '{MC_EXTRA_SHA}'
                         ]
                     ], [
-                        jar: FART,
-                        classpath: getClasspath(project, libs, FART),
+                        jar: rootProject.FART,
+                        classpath: getClasspath(project, libs, rootProject.FART),
                         args: [
                             '--input', '{MC_SLIM}',
                             '--output', '{MC_SRG}',
@@ -820,13 +822,13 @@ project(':fmlonly') {
                     ]
                 ]
             ]
-            getClasspath(project, libs, MCP_ARTIFACT.descriptor) //Tell it to download mcp_config
+            getClasspath(project, libs, mcpArtifact.descriptor) //Tell it to download mcp_config
         }
     }
 
     task installerJar(type: InstallerJar) {
         packedDependencies = PACKED_DEPS
-        from(extraTxts)
+        from(rootProject.extraTxts)
         //TODO: make FML installer logo?
         from(rootProject.file('/forge_installer_logo.png')) {
             rename { 'big_logo.png' }
@@ -892,10 +894,10 @@ project(':forge') {
         // The new versioning sceme is <MCVersion>-<ForgeMC>.<RB>.<CommitsSinceRB>
         // ForgeMC is a unique identifier for every MC version we have supported.
         // Essentially, the same as the old, except dropping the first number, and the builds are no longer unique.
-        MCP_ARTIFACT = project(':mcp').mcp.config.get()
+        MCP_ARTIFACT = project.provider { project(':mcp') }.flatMap { it.mcp.config }
         VERSION_JSON = project(':mcp').file('build/mcp/downloadJson/version.json')
         PACKED_DEPS = [':fmlcore:jar', ':fmlloader:jar', ':javafmllanguage:jar', ':mclanguage:jar']
-        MAVEN_PATH = "${group.replace('.', '/')}/${project.name}/${VERSION}"
+        MAVEN_PATH = "${group.replace('.', '/')}/${project.name}/${rootProject.VERSION}"
     }
 
     configurations {
@@ -916,9 +918,9 @@ project(':forge') {
         implementation project(':fmlloader')
         implementation project(':javafmllanguage')
         implementation project(':mclanguage')
-        runtimeOnly "cpw.mods:bootstraplauncher:${BOOTSTRAPLAUNCHER_VERSION}"
+        runtimeOnly "cpw.mods:bootstraplauncher:${rootProject.BOOTSTRAPLAUNCHER_VERSION}"
     }
-    dependencies sharedDeps
+    dependencies rootProject.sharedDeps
 
     patcher {
         excs.from file("$rootDir/src/main/resources/forge.exc")
@@ -1039,15 +1041,15 @@ project(':forge') {
                 'Specification-Vendor':     'Forge Development LLC',
                 'Specification-Version':    SPEC_VERSION,
                 'Implementation-Title':     project.group,
-                'Implementation-Version':   project.version.substring(MC_VERSION.length() + 1),
+                'Implementation-Version':   project.version.substring(rootProject.MC_VERSION.length() + 1),
                 'Implementation-Vendor':    'Forge Development LLC'
             ] as LinkedHashMap,
             'net/minecraftforge/versions/mcp/': [
                 'Specification-Title':      'Minecraft',
                 'Specification-Vendor':     'Mojang',
-                'Specification-Version':    MC_VERSION,
+                'Specification-Version':    rootProject.MC_VERSION,
                 'Implementation-Title':     'MCP',
-                'Implementation-Version':   MCP_VERSION,
+                'Implementation-Version':   rootProject.MCP_VERSION,
                 'Implementation-Vendor':    'Forge'
             ] as LinkedHashMap,
             'net/minecraftforge/fml/javafmlmod/': [
@@ -1082,7 +1084,7 @@ project(':forge') {
         //TODO: Merge our english.json?
     }
 
-    sharedFmlonlyForge.call(project)
+    rootProject.sharedFmlonlyForge.call(project)
 
     task downloadLibraries(type: DownloadLibraries, dependsOn: ':mcp:setupMCP') {
         input = VERSION_JSON
@@ -1090,7 +1092,7 @@ project(':forge') {
     }
 
     task extractInheritance(type: ExtractInheritance, dependsOn: [genJoinedBinPatches, downloadLibraries]) {
-        tool = INSTALLER_TOOLS + ':fatjar'
+        tool = rootProject.INSTALLER_TOOLS + ':fatjar'
         input = genJoinedBinPatches.cleanJar
         libraries.addAll downloadLibraries.librariesOutput.map { rf -> Files.readAllLines(rf.asFile.toPath()).stream().map(File::new).collect(java.util.stream.Collectors.toList()) }
     }
@@ -1159,14 +1161,14 @@ project(':forge') {
                 releaseTime: timestamp,
                 type: 'release',
                 mainClass: 'cpw.mods.bootstraplauncher.BootstrapLauncher',
-                inheritsFrom: MC_VERSION,
+                inheritsFrom: rootProject.MC_VERSION,
                 logging: {},
                 arguments: [
                     game: ['--launchTarget', 'forgeclient',
-                           '--fml.forgeVersion', FORGE_VERSION,
-                           '--fml.mcVersion', MC_VERSION,
+                           '--fml.forgeVersion', rootProject.FORGE_VERSION,
+                           '--fml.mcVersion', rootProject.MC_VERSION,
                            '--fml.forgeGroup', project.group,
-                           '--fml.mcpVersion', MCP_VERSION],
+                           '--fml.mcpVersion', rootProject.MCP_VERSION],
                     jvm: ["-DignoreList=${forge_client.properties.ignoreList},\${version_name}.jar",
                           "-DmergeModules=${forge_client.properties.mergeModules}",
                           '-DlibraryDirectory=${library_directory}',
@@ -1185,7 +1187,7 @@ project(':forge') {
     task installerJson(type: InstallerJson, dependsOn: [launcherJson, genClientBinPatches, applyClientBinPatches, applyServerBinPatches, 'signUniversalJar']) {
         ext {
             // remove :fatjar
-            BIN_PATCHER = BINPATCH_TOOL.substring(0, BINPATCH_TOOL.length() - 1 - BINPATCH_TOOL.split(':')[3].length())
+            BIN_PATCHER = rootProject.BINPATCH_TOOL.substring(0, rootProject.BINPATCH_TOOL.length() - 1 - rootProject.BINPATCH_TOOL.split(':')[3].length())
         }
         input.from applyClientBinPatches.output, applyServerBinPatches.output, genClientBinPatches.toolJar, launcherJson.output
         icon = rootProject.file('icon.ico')
@@ -1193,54 +1195,55 @@ project(':forge') {
 
         doFirst {
             def libs = libraries
+            net.minecraftforge.gradle.common.util.Artifact mcpArtifact = MCP_ARTIFACT.get()
             json = [
                 _comment_: launcherJson.comment,
                 spec: 1,
                 profile: project.name,
                 version: launcherJson.id,
                 path: null,
-                minecraft: MC_VERSION,
+                minecraft: rootProject.MC_VERSION,
                 serverJarPath: '{LIBRARY_DIR}/net/minecraft/server/{MINECRAFT_VERSION}/server-{MINECRAFT_VERSION}.jar',
                 data: [
                     MAPPINGS: [
-                        client: "[${MCP_ARTIFACT.group}:${MCP_ARTIFACT.name}:${MCP_ARTIFACT.version}:mappings@txt]",
-                        server: "[${MCP_ARTIFACT.group}:${MCP_ARTIFACT.name}:${MCP_ARTIFACT.version}:mappings@txt]"
+                        client: "[${mcpArtifact.group}:${mcpArtifact.name}:${mcpArtifact.version}:mappings@txt]",
+                        server: "[${mcpArtifact.group}:${mcpArtifact.name}:${mcpArtifact.version}:mappings@txt]"
                     ],
                     MOJMAPS: [
-                        client: "[net.minecraft:client:${MC_VERSION}-${MCP_VERSION}:mappings@txt]",
-                        server: "[net.minecraft:server:${MC_VERSION}-${MCP_VERSION}:mappings@txt]"
+                        client: "[net.minecraft:client:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:mappings@txt]",
+                        server: "[net.minecraft:server:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:mappings@txt]"
                     ],
                     MERGED_MAPPINGS: [
-                        client: "[${MCP_ARTIFACT.group}:${MCP_ARTIFACT.name}:${MCP_ARTIFACT.version}:mappings-merged@txt]",
-                        server: "[${MCP_ARTIFACT.group}:${MCP_ARTIFACT.name}:${MCP_ARTIFACT.version}:mappings-merged@txt]"
+                        client: "[${mcpArtifact.group}:${mcpArtifact.name}:${mcpArtifact.version}:mappings-merged@txt]",
+                        server: "[${mcpArtifact.group}:${mcpArtifact.name}:${mcpArtifact.version}:mappings-merged@txt]"
                     ],
                     BINPATCH: [
                         client: '/data/client.lzma',
                         server: '/data/server.lzma'
                     ],
                     MC_UNPACKED: [
-                        client: "[net.minecraft:client:${MC_VERSION}-${MCP_VERSION}:unpacked]",
-                        server: "[net.minecraft:server:${MC_VERSION}-${MCP_VERSION}:unpacked]"
+                        client: "[net.minecraft:client:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:unpacked]",
+                        server: "[net.minecraft:server:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:unpacked]"
                     ],
                     MC_SLIM: [
-                        client: "[net.minecraft:client:${MC_VERSION}-${MCP_VERSION}:slim]",
-                        server: "[net.minecraft:server:${MC_VERSION}-${MCP_VERSION}:slim]"
+                        client: "[net.minecraft:client:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:slim]",
+                        server: "[net.minecraft:server:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:slim]"
                     ],
                     MC_SLIM_SHA: [
                         client: "'${downloadClientSlim.output.get().asFile.sha1()}'",
                         server: "'${downloadServerSlim.output.get().asFile.sha1()}'"
                     ],
                     MC_EXTRA: [
-                        client: "[net.minecraft:client:${MC_VERSION}-${MCP_VERSION}:extra]",
-                        server: "[net.minecraft:server:${MC_VERSION}-${MCP_VERSION}:extra]"
+                        client: "[net.minecraft:client:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:extra]",
+                        server: "[net.minecraft:server:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:extra]"
                     ],
                     MC_EXTRA_SHA: [
                         client: "'${downloadClientExtra.output.get().asFile.sha1()}'",
                         server: "'${downloadServerExtra.output.get().asFile.sha1()}'"
                     ],
                     MC_SRG: [
-                        client: "[net.minecraft:client:${MC_VERSION}-${MCP_VERSION}:srg]",
-                        server: "[net.minecraft:server:${MC_VERSION}-${MCP_VERSION}:srg]"
+                        client: "[net.minecraft:client:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:srg]",
+                        server: "[net.minecraft:server:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:srg]"
                     ],
                     /*MC_SRG_SHA: [
                         client: "'${createClientSRG.output.sha1()}'",
@@ -1255,15 +1258,15 @@ project(':forge') {
                         server: "'${applyServerBinPatches.output.get().asFile.sha1()}'"
                     ],
                     MCP_VERSION: [
-                        client: "'${MCP_VERSION}'",
-                        server: "'${MCP_VERSION}'"
+                        client: "'${rootProject.MCP_VERSION}'",
+                        server: "'${rootProject.MCP_VERSION}'"
                     ]
                 ],
                 processors: [
                     [
                         sides: ['server'],
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'EXTRACT_FILES',
                             '--archive', '{INSTALLER}',
@@ -1271,14 +1274,14 @@ project(':forge') {
                             '--from', 'data/run.sh',
                             '--to',   '{ROOT}/run.sh',
                             '--exec', '{ROOT}/run.sh',
-                            //'--from', "data/run_forge_${VERSION.replace('-', '_').sh",
-                            //'--to',   '{ROOT}/run_forge_${VERSION.replace('-', '_').sh',
-                            //'--exec', '{ROOT}/run_forge_${VERSION.replace('-', '_').sh',
+                            //'--from', "data/run_forge_${rootProject.VERSION.replace('-', '_').sh",
+                            //'--to',   '{ROOT}/run_forge_${rootProject.VERSION.replace('-', '_').sh',
+                            //'--exec', '{ROOT}/run_forge_${rootProject.VERSION.replace('-', '_').sh',
 
                             '--from', 'data/run.bat',
                             '--to',   '{ROOT}/run.bat',
-                            //'--from', 'data/run_forge_${VERSION.replace('-', '_').bat',
-                            //'--to',   '{ROOT}/run_forge_${VERSION.replace('-', '_').bat',
+                            //'--from', 'data/run_forge_${rootProject.VERSION.replace('-', '_').bat',
+                            //'--to',   '{ROOT}/run_forge_${rootProject.VERSION.replace('-', '_').bat',
 
                             '--from',     'data/user_jvm_args.txt',
                             '--to',       '{ROOT}/user_jvm_args.txt',
@@ -1292,8 +1295,8 @@ project(':forge') {
                         ]
                     ], [
                         sides: ['server'],
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'BUNDLER_EXTRACT',
                             '--input', '{MINECRAFT_JAR}',
@@ -1302,8 +1305,8 @@ project(':forge') {
                         ]
                     ], [
                         sides: ['server'],
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'BUNDLER_EXTRACT',
                             '--input', '{MINECRAFT_JAR}',
@@ -1311,26 +1314,26 @@ project(':forge') {
                             '--jar-only'
                         ]
                     ], [
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'MCP_DATA',
-                            '--input', "[${MCP_ARTIFACT.descriptor}]",
+                            '--input', "[${mcpArtifact.descriptor}]",
                             '--output', '{MAPPINGS}',
                             '--key', 'mappings'
                         ]
                     ], [
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'DOWNLOAD_MOJMAPS',
-                            '--version', MC_VERSION,
+                            '--version', rootProject.MC_VERSION,
                             '--side', '{SIDE}',
                             '--output', '{MOJMAPS}'
                         ]
                     ], [
-                        jar: INSTALLER_TOOLS,
-                        classpath: getClasspath(project, libs, INSTALLER_TOOLS),
+                        jar: rootProject.INSTALLER_TOOLS,
+                        classpath: getClasspath(project, libs, rootProject.INSTALLER_TOOLS),
                         args: [
                             '--task', 'MERGE_MAPPING',
                             '--left', '{MAPPINGS}',
@@ -1340,8 +1343,8 @@ project(':forge') {
                         ]
                     ], [
                         sides: ['client'],
-                        jar: JAR_SPLITTER,
-                        classpath: getClasspath(project, libs, JAR_SPLITTER),
+                        jar: rootProject.JAR_SPLITTER,
+                        classpath: getClasspath(project, libs, rootProject.JAR_SPLITTER),
                         args: [
                             '--input', '{MINECRAFT_JAR}',
                             '--slim',  '{MC_SLIM}',
@@ -1354,8 +1357,8 @@ project(':forge') {
                         ]
                     ], [
                         sides: ['server'],
-                        jar: JAR_SPLITTER,
-                        classpath: getClasspath(project, libs, JAR_SPLITTER),
+                        jar: rootProject.JAR_SPLITTER,
+                        classpath: getClasspath(project, libs, rootProject.JAR_SPLITTER),
                         args: [
                             '--input', '{MC_UNPACKED}',
                             '--slim',  '{MC_SLIM}',
@@ -1367,8 +1370,8 @@ project(':forge') {
                             '{MC_EXTRA}': '{MC_EXTRA_SHA}'
                         ]
                     ], [
-                        jar: FART,
-                        classpath: getClasspath(project, libs, FART),
+                        jar: rootProject.FART,
+                        classpath: getClasspath(project, libs, rootProject.FART),
                         args: [
                             '--input', '{MC_SLIM}',
                             '--output', '{MC_SRG}',
@@ -1394,12 +1397,12 @@ project(':forge') {
                     ]
                 ]
             ]
-            getClasspath(project, libs, MCP_ARTIFACT.descriptor) //Tell it to download mcp_config
+            getClasspath(project, libs, mcpArtifact.descriptor) //Tell it to download mcp_config
         }
     }
 
     universalJar {
-        from extraTxts
+        from rootProject.extraTxts
 
         // add crowdin locales
         from { crowdin.output.present && crowdin.output.get().asFile.exists() ? zipTree(crowdin.output) : null}
@@ -1419,7 +1422,7 @@ project(':forge') {
 
     task installerJar(type: InstallerJar, dependsOn: [genClientBinPatches, genServerBinPatches, 'signUniversalJar', launcherJson]) {
         packedDependencies = PACKED_DEPS
-        from(extraTxts)
+        from(rootProject.extraTxts)
         from(rootProject.file('/forge_installer_logo.png')) {
             rename { 'big_logo.png' }
         }
@@ -1439,7 +1442,7 @@ project(':forge') {
 
         from rootProject.file('gradlew')
         from rootProject.file('gradlew.bat')
-        from extraTxts
+        from rootProject.extraTxts
         from(rootProject.file('gradle/')){
             into('gradle/')
         }
@@ -1452,11 +1455,11 @@ project(':forge') {
                 FORGE_VERSION: project.version,
                 FORGE_GROUP: project.group,
                 FORGE_NAME: project.name,
-                MC_VERSION: MC_VERSION,
-                MAPPING_CHANNEL: MAPPING_CHANNEL,
-                MAPPING_VERSION: MAPPING_VERSION,
+                MC_VERSION: rootProject.MC_VERSION,
+                MAPPING_CHANNEL: rootProject.MAPPING_CHANNEL,
+                MAPPING_VERSION: rootProject.MAPPING_VERSION,
                 FORGE_SPEC_VERSION: SPEC_VERSION.split("\\.")[0],
-                MC_NEXT_VERSION: "1."+((MC_VERSION.split("[\\.-]")[1] as int)+1)
+                MC_NEXT_VERSION: "1."+((rootProject.MC_VERSION.split("[\\.-]")[1] as int)+1)
             ])
             rename 'gitignore\\.txt', '.gitignore'
             rename 'gitattributes\\.txt', '.gitattributes'
@@ -1490,7 +1493,7 @@ project(':forge') {
     }
 
     reobfJar {
-        tool = FART
+        tool = rootProject.FART
         args = ['--input', '{input}', '--output', '{output}', '--map', '{srg}']
     }
 
@@ -1511,8 +1514,8 @@ project(':forge') {
         publications {
             mavenJava(MavenPublication) {
                 artifact universalJar
-                if (changelog.exists()) {
-                    artifact(changelog) {
+                if (rootProject.changelogFile.exists()) {
+                    artifact(rootProject.changelogFile) {
                         classifier = 'changelog'
                     }
                 }
