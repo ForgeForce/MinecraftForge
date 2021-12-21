@@ -3,7 +3,7 @@ plugins {
     id 'jacoco'
     id 'com.github.ben-manes.versions'
     id 'org.javamodularity.moduleplugin'
-    id 'forge.shared-conventions'
+    id 'root.shared-conventions'
 }
 
 // Reject non-stable versions in the dependency updates reporting task
