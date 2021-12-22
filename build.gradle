@@ -1,4 +1,6 @@
 import net.minecraftforge.forge.tasks.*
+import net.minecraftforge.gradle.patcher.tasks.GenerateUserdevConfig
+
 import static net.minecraftforge.forge.tasks.Util.*
 import net.minecraftforge.gradle.common.tasks.ApplyBinPatches
 import net.minecraftforge.gradle.common.tasks.DownloadMavenArtifact
@@ -53,25 +55,25 @@ changelogFile = rootProject.file('build/changelog.txt')
 if (changelogFile.exists())
     extraTxts += changelogFile
 
-task downloadVersionManifest(type: Download) {
+var downloadVersionManifest = tasks.register('downloadVersionManifest', Download) {
     src 'https://launchermeta.mojang.com/mc/game/version_manifest_v2.json'
     dest file('build/versions/version_manifest.json')
     useETag 'all'
     onlyIfModified true
     quiet true
 }
-task downloadJson(type: Download, dependsOn: downloadVersionManifest) {
-    inputs.file downloadVersionManifest.dest
-    src { downloadVersionManifest.dest.json.versions.find{ it.id == MC_VERSION }.url }
+var downloadJson = tasks.register('downloadJson', Download) {
+    inputs.file downloadVersionManifest.map { it.dest }
+    src { downloadVersionManifest.map { it.dest }.map { it.json.versions.find { it.id == MC_VERSION }.url } }
     dest file("build/versions/${MC_VERSION}/version.json")
     useETag 'all'
     onlyIfModified true
     quiet true
 }
 ['client', 'server'].each { id ->
-    task "download${id.capitalize()}Raw"(type: Download, dependsOn: downloadJson) {
-        inputs.file downloadJson.dest
-        src { downloadJson.dest.json.downloads.get(id).url }
+    tasks.register("download${id.capitalize()}Raw", Download) {
+        inputs.file downloadJson.map { it.dest }
+        src { downloadJson.map { it.dest }.map { it.json.downloads.get(id).url } }
         dest file("build/versions/${rootProject.MC_VERSION}/${id}.jar")
         useETag 'all'
         onlyIfModified true
@@ -225,17 +227,18 @@ sharedDeps = {
 sharedFmlonlyForge = { Project prj ->
     ['Client', 'Server', 'Joined'].each { side ->
         ['slim', 'extra'].each { type ->
-            prj.task([type: DownloadMavenArtifact], "download${side}${type.capitalize()}") {
+            prj.tasks.register("download${side}${type.capitalize()}", DownloadMavenArtifact) {
                 artifact = "net.minecraft:${side.toLowerCase()}:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:${type}"
             }
         }
 
         if (side.equals('Joined')) {
-            prj.task([type: DownloadMavenArtifact], "createJoinedSRG") {
+            prj.tasks.register('createJoinedSRG', DownloadMavenArtifact) {
                 artifact = "net.minecraft:joined:${rootProject.MC_VERSION}-${rootProject.MCP_VERSION}:srg"
             }
         } else {
-            prj.task([type: RenameJar, dependsOn: prj.tasks.createMcp2Srg], "create${side}SRG") {
+            prj.tasks.register("create${side}SRG", RenameJar) {
+                dependsOn prj.tasks.named('createMcp2Srg')
                 tool = rootProject.FART
                 args = [
                         '--input', '{input}',
@@ -249,27 +252,30 @@ sharedFmlonlyForge = { Project prj ->
             }
         }
 
-        def gen = prj.tasks.getByName("gen${side}BinPatches")
-        def createSRG = prj.tasks.getByName("create${side}SRG")
-        gen.dependsOn(createSRG)
-        gen.tool = rootProject.BINPATCH_TOOL
-        gen.cleanJar = createSRG.output
+        var gen = prj.tasks.named("gen${side}BinPatches")
+        var createSRG = prj.tasks.named("create${side}SRG")
+        gen.configure {
+            dependsOn(createSRG)
+            tool = rootProject.BINPATCH_TOOL
+            cleanJar = createSRG.flatMap { it.output }
+        }
 
-        prj.task([type: ApplyBinPatches, dependsOn: gen], "apply${side}BinPatches") {
-            clean = gen.cleanJar
-            patch = gen.output
+        prj.tasks.register("apply${side}BinPatches", ApplyBinPatches) {
+            clean = gen.flatMap { it.cleanJar }
+            patch = gen.flatMap { it.output }
             tool = rootProject.BINPATCH_TOOL
         }
     }
 
-    prj.task([type: DownloadMavenArtifact], 'downloadInstaller') {
+    prj.tasks.register('downloadInstaller', DownloadMavenArtifact) {
         artifact = "net.minecraftforge:installer:${rootProject.INSTALLER_VERSION}:shrunk"
         changing = true
     }
 
     prj.afterEvaluate {
         [prj.tasks.universalJar, prj.tasks.installerJar].each { t ->
-            def signTask = prj.task([type: SignJar, dependsOn: t], "sign${t.name.capitalize()}") {
+            var signTask = prj.tasks.register("sign${t.name.capitalize()}", SignJar) {
+                dependsOn t
                 onlyIf {
                     rootProject.JAR_SIGNER != null && t.state.failure == null
                 }
@@ -288,7 +294,7 @@ sharedFmlonlyForge = { Project prj ->
         }
     }
 
-    prj.tasks.userdevConfig {
+    prj.tasks.named('userdevConfig', GenerateUserdevConfig).configure {
         def launchPrefix = prj.name == "forge" ? "forge" : "fml"
         getArtifacts(prj, prj.configurations.installer, true).each { key, lib -> libraries.add(lib.name) }
         getArtifacts(prj, prj.configurations.moduleonly, true).each { key, lib ->
@@ -409,8 +415,9 @@ sharedFmlonlyForge = { Project prj ->
             IGNORE_LIST: Util.getArtifacts(prj, prj.configurations.moduleonly, false).values().collect{it.downloads.artifact.path.rsplit('/', 1)[1]}.join(','),
             MODULES: 'ALL-MODULE-PATH'
     ]
-    
-    prj.task([dependsOn: rootProject.downloadServerRaw], 'makeClasspathFiles') {
+
+    prj.tasks.register('makeClasspathFiles', Task) {
+        dependsOn rootProject.downloadServerRaw
         doLast {
             def CLASS_PATH = Util.getArtifacts(prj, prj.configurations.installer, false).values().collect{"libraries/${it.downloads.artifact.path}"} +
             [
@@ -438,8 +445,8 @@ sharedFmlonlyForge = { Project prj ->
     }
 
     prj.afterEvaluate {
-        prj.installerJar {
-            dependsOn('makeClasspathFiles')
+        prj.tasks.named('installerJar', Zip).configure {
+            dependsOn 'makeClasspathFiles'
             from(rootProject.file('server_files/')) {
                 exclude 'args.txt'
                 filter(ReplaceTokens, tokens: tokens)
@@ -464,7 +471,7 @@ project(':forge') {
 }
 
 //evaluationDependsOnChildren()
-task setup() {  //These must be strings so that we can do lazy resolution. Else we need evaluationDependsOnChildren above
+tasks.register('setup', Task) {  //These must be strings so that we can do lazy resolution. Else we need evaluationDependsOnChildren above
     dependsOn ':clean:extractMapped'
     if (symlinkValid)
         dependsOn ':fmlonly:extractMapped'

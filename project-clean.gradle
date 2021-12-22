@@ -2,7 +2,7 @@ plugins {
     id 'net.minecraftforge.gradle.patcher'
 }
 
-tasks.withType(AbstractPublishToMaven.class).forEach{tsk -> tsk.enabled = false } // We don't want to publish anything
+tasks.withType(AbstractPublishToMaven.class).configureEach { tsk -> tsk.enabled = false } // We don't want to publish anything
 
 dependencies {
     implementation 'net.minecraftforge:forgespi:' + rootProject.SPI_VERSION

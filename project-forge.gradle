@@ -9,11 +9,18 @@ import net.minecraftforge.forge.tasks.InstallerJar
 import net.minecraftforge.forge.tasks.InstallerJson
 import net.minecraftforge.forge.tasks.LauncherJson
 import net.minecraftforge.forge.tasks.Util
+import net.minecraftforge.gradle.common.tasks.ApplyRangeMap
+import net.minecraftforge.gradle.common.tasks.ExtractExistingFiles
 import net.minecraftforge.gradle.common.tasks.ExtractInheritance
+import net.minecraftforge.gradle.common.tasks.ExtractRangeMap
+import net.minecraftforge.gradle.common.tasks.JarExec
+import net.minecraftforge.gradle.mcp.tasks.GenerateSRG
+import net.minecraftforge.gradle.patcher.tasks.GenerateBinPatches
 import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
 import java.nio.file.Files
+import java.util.stream.Collectors
 
 import static net.minecraftforge.forge.tasks.Util.getClasspath
 
@@ -246,26 +253,27 @@ ext {
     ]
 }
 
-task crowdin(type: Crowdin) {
+tasks.register('crowdin', Crowdin) {
     key = project.hasProperty('crowdinKey') ? project.crowdinKey : null
     //TODO: Merge our english.json?
 }
 
 rootProject.sharedFmlonlyForge.call(project)
 
-task downloadLibraries(type: DownloadLibraries, dependsOn: ':mcp:setupMCP') {
+var downloadLibraries = tasks.register('downloadLibraries', DownloadLibraries) {
+    dependsOn ':mcp:setupMCP'
     input = VERSION_JSON
     output = rootProject.file('build/libraries/')
 }
 
-task extractInheritance(type: ExtractInheritance, dependsOn: [genJoinedBinPatches, downloadLibraries]) {
+var extractInheritance = tasks.register('extractInheritance', ExtractInheritance) {
     tool = rootProject.INSTALLER_TOOLS + ':fatjar'
-    input = genJoinedBinPatches.cleanJar
-    libraries.addAll downloadLibraries.librariesOutput.map { rf -> Files.readAllLines(rf.asFile.toPath()).stream().map(File::new).collect(java.util.stream.Collectors.toList()) }
+    input = tasks.named('genJoinedBinPatches', GenerateBinPatches).flatMap { it.cleanJar }
+    libraries.addAll downloadLibraries.flatMap { it.librariesOutput }.map { rf -> Files.readAllLines(rf.asFile.toPath()).stream().map(File::new).collect(Collectors.toList()) }
 }
 
-task findFieldInstanceChecks(type: FieldCompareFinder, dependsOn: ['createJoinedSRG']) {
-    jar = createJoinedSRG.output
+var findFieldInstanceChecks = tasks.register('findFieldInstanceChecks', FieldCompareFinder) {
+    it.jar = tasks.named('createJoinedSRG').flatMap { it.output }
     output = rootProject.file('src/main/resources/coremods/field_to_instanceof.json')
     fields {
         /* 1.17 changed most things to use Tags. So this isn't nessasary anymore so just make an empty list
@@ -283,41 +291,45 @@ task findFieldInstanceChecks(type: FieldCompareFinder, dependsOn: ['createJoined
     }
 }
 
-task checkATs(type: CheckATs, dependsOn: [extractInheritance, createSrg2Mcp]) {
-    inheritance = extractInheritance.output
+var checkATs = tasks.register('checkATs', CheckATs) {
+    inheritance = extractInheritance.flatMap { it.output }
     ats.from patcher.accessTransformers
-    mappings = createSrg2Mcp.output
+    mappings = tasks.named('createSrg2Mcp', GenerateSRG).flatMap { it.output }
 }
 
-task checkSAS(type: CheckSAS, dependsOn: extractInheritance) {
-    inheritance = extractInheritance.output
+var checkSAS = tasks.register('checkSAS', CheckSAS) {
+    inheritance = extractInheritance.flatMap { it.output }
     sass.from patcher.sideAnnotationStrippers
 }
 
-task checkExcs(type: CheckExcs, dependsOn: jar) {
-    binary = jar.archiveFile.get().asFile
+var checkExcs = tasks.register('checkExcs', CheckExcs) {
+    binary = tasks.named('jar', Jar).flatMap { it.archiveFile }
     excs.from patcher.excs
 }
 
-task checkAll(dependsOn: [checkATs, checkSAS, checkExcs, findFieldInstanceChecks]){}
+tasks.register('checkAll', Task) {
+    dependsOn checkATs, checkSAS, checkExcs, findFieldInstanceChecks
+}
 
-task checkPatchesAndFix(type: CheckPatches, dependsOn: genPatches) {
+tasks.register('checkPatchesAndFix', CheckPatches) {
+    dependsOn 'genPatches'
     patchDir = file("$rootDir/patches")
     autoFix = true
 }
 
-task checkPatches(type: CheckPatches, dependsOn: genPatches) {
+var checkPatches = tasks.register('checkPatches', CheckPatches) {
+    dependsOn 'genPatches'
     patchDir = file("$rootDir/patches")
     autoFix = false
 }
 
-genPatches {
+tasks.named('genPatches').configure {
     finalizedBy checkPatches
     autoHeader true
     lineEnding = '\n'
 }
 
-task launcherJson(type: LauncherJson) {
+var launcherJson = tasks.register('launcherJson', LauncherJson) {
     packedDependencies = [':fmlloader:jar']
     doFirst {
         def forge_client = project(':forge').patcher.runs.forge_client
@@ -351,12 +363,15 @@ task launcherJson(type: LauncherJson) {
     }
 }
 
-task installerJson(type: InstallerJson, dependsOn: [launcherJson, genClientBinPatches, applyClientBinPatches, applyServerBinPatches, 'signUniversalJar']) {
+// TODO: refactor InstallerJson to not use afterEvaluate so we don't need to eagerly create this task
+tasks.create('installerJson', InstallerJson) {
+    dependsOn launcherJson, 'genClientBinPatches', 'applyClientBinPatches', 'applyServerBinPatches', 'signUniversalJar'
     ext {
         // remove :fatjar
         BIN_PATCHER = rootProject.BINPATCH_TOOL.substring(0, rootProject.BINPATCH_TOOL.length() - 1 - rootProject.BINPATCH_TOOL.split(':')[3].length())
     }
-    input.from applyClientBinPatches.output, applyServerBinPatches.output, genClientBinPatches.toolJar, launcherJson.output
+    input.from tasks.named('applyClientBinPatches').flatMap { output }, tasks.named('applyServerBinPatches').flatMap { output }
+    input.from tasks.named('genClientBinPatches').flatMap { toolJar }, launcherJson.flatMap { output }
     icon = rootProject.file('icon.ico')
     packedDependencies = PACKED_DEPS
 
@@ -568,7 +583,7 @@ task installerJson(type: InstallerJson, dependsOn: [launcherJson, genClientBinPa
     }
 }
 
-universalJar {
+tasks.named('universalJar').configure {
     from rootProject.extraTxts
 
     // add crowdin locales
@@ -587,7 +602,8 @@ universalJar {
     }
 }
 
-task installerJar(type: InstallerJar, dependsOn: [genClientBinPatches, genServerBinPatches, 'signUniversalJar', launcherJson]) {
+var installerJar = tasks.register('installerJar', InstallerJar) {
+    dependsOn 'genClientBinPatches', 'genServerBinPatches', 'signUniversalJar', launcherJson
     packedDependencies = PACKED_DEPS
     from(rootProject.extraTxts)
     from(rootProject.file('/forge_installer_logo.png')) {
@@ -601,7 +617,7 @@ task installerJar(type: InstallerJar, dependsOn: [genClientBinPatches, genServer
     }
 }
 
-task makeMdk(type: Zip) {
+var makeMdk = tasks.register('makeMdk', Zip) {
     archiveBaseName = project.name
     archiveClassifier = 'mdk'
     archiveVersion = project.version
@@ -659,28 +675,32 @@ license {
     }
 }
 
-reobfJar {
+tasks.named('reobfJar', JarExec) {
     tool = rootProject.FART
     args = ['--input', '{input}', '--output', '{output}', '--map', '{srg}']
 }
 
-tasks.eclipse.dependsOn('genEclipseRuns')
+tasks.named('eclipse').configure {
+    dependsOn('genEclipseRuns')
+}
 
 if (project.hasProperty('UPDATE_MAPPINGS')) {
-    extractRangeMap {
+    tasks.named('extractRangeMap', ExtractRangeMap).configure {
         sources.from sourceSets.test.java.srcDirs
-        addDependencies compileTestJava.classpath
+        addDependencies sourceSets.test.compileClasspath
     }
-    applyRangeMap {
+    tasks.named('applyRangeMap', ApplyRangeMap).configure {
         sources.from sourceSets.test.java.srcDirs
     }
-    sourceSets.test.java.srcDirs.each { extractMappedNew.addTarget it }
+    tasks.named('extractMappedNew', ExtractExistingFiles).configure {
+        targets.from sourceSets.test.java.srcDirs
+    }
 }
 
 publishing {
     publications {
         mavenJava(MavenPublication) {
-            artifact universalJar
+            artifact tasks.named('universalJar')
             if (rootProject.changelogFile.exists()) {
                 artifact(rootProject.changelogFile) {
                     classifier = 'changelog'
@@ -689,10 +709,10 @@ publishing {
             artifact installerJar
             //TODO: installer-win
             artifact makeMdk
-            artifact userdevJar
-            artifact sourcesJar
+            artifact tasks.named('userdevJar')
+            artifact tasks.named('sourcesJar')
         }
     }
 }
 // Since we need the modules in the bootstrap, we need to make sure they are compiled before we do each run
-afterEvaluate { prepareRuns.dependsOn(':fmlcore:jar', ':fmlloader:jar', ':javafmllanguage:jar', ':mclanguage:jar') }
+afterEvaluate { tasks.named('prepareRuns').configure { dependsOn(':fmlcore:jar', ':fmlloader:jar', ':javafmllanguage:jar', ':mclanguage:jar') } }
