@@ -1,3 +1,79 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+    id 'eclipse'
+}
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        name = 'forge'
+        url = 'https://maven.minecraftforge.net/'
+    }
+}
+
+version = rootProject.version
+
+java.toolchain.languageVersion = JavaLanguageVersion.of(17)
+
+tasks.withType(Javadoc).configureEach {
+    options.tags = [
+        'apiNote:a:<em>API Note:</em>',
+        'implSpec:a:<em>Implementation Requirements:</em>',
+        'implNote:a:<em>Implementation Note:</em>'
+    ]
+    options.addStringOption('Xdoclint:all,-missing', '-public')
+}
+
+publishing {
+    publications.register('mavenJava', MavenPublication) {
+        // Normal Maven/old gradle doesn't support '2.+' version wildcards
+        // For now we just suppress. We *should* force the resolution to pinned versions.
+        suppressPomMetadataWarningsFor('apiElements')
+        suppressPomMetadataWarningsFor('runtimeElements')
+        pom {
+            name = project.name
+            description = 'Modifactions to Minecraft to enable mod developers.'
+            url = 'https://github.com/MinecraftForge/MinecraftForge'
+
+            scm {
+                url = 'https://github.com/MinecraftForge/MinecraftForge'
+                connection = 'scm:git:git://github.com/MinecraftForge/MinecraftForge.git'
+                developerConnection = 'scm:git:git@github.com:MinecraftForge/MinecraftForge.git'
+            }
+
+            issueManagement {
+                system = 'github'
+                url = 'https://github.com/MinecraftForge/MinecraftForge/issues'
+            }
+
+            licenses {
+                license {
+                    name = 'LGPL 2.1'
+                    url = 'https://github.com/MinecraftForge/MinecraftForge/blob/1.13-pre/LICENSE.txt'
+                    distribution = 'repo'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            if (System.env.MAVEN_USER) {
+                url 'https://maven.minecraftforge.net/releases/'
+                authentication {
+                    basic(BasicAuthentication)
+                }
+                credentials {
+                    username = System.env.MAVEN_USER ?: 'not'
+                    password = System.env.MAVEN_PASSWORD ?: 'set'
+                }
+            } else {
+                url 'file://' + rootProject.file('repo').getAbsolutePath()
+            }
+        }
+    }
+}
 
 // Define manifests
 class ManifestsExtension {
