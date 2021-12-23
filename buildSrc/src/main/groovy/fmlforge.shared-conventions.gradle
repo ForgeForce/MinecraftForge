@@ -1,0 +1,85 @@
+plugins {
+    id 'root.shared-conventions'
+    id 'java-library'
+    id 'net.minecraftforge.gradle.patcher'
+}
+
+configurations {
+    moduleonly
+    installer {
+        // Don't pull all libraries, if we're missing something, add it to the installer list so the installer knows to download it.
+        transitive = false
+    }
+    api.extendsFrom(installer)
+
+    fml // Contains the FML subprojects dependencies
+    packedInstallerJar {
+        extendsFrom fml
+        transitive = false
+    }
+    packedInstallerJson {
+        extendsFrom fml
+        transitive = false
+    }
+    implementation.extendsFrom fml
+
+    packedLauncherJson {
+        transitive = false
+    }
+}
+
+// TODO: Better coordination between project dependencies and the installer.
+dependencies {
+    moduleonly "cpw.mods:securejarhandler:${rootProject.SECUREJARHANDLER_VERSION}"
+    moduleonly "org.ow2.asm:asm:${rootProject.ASM_VERSION}"
+    moduleonly "org.ow2.asm:asm-commons:${rootProject.ASM_VERSION}"
+    moduleonly "org.ow2.asm:asm-tree:${rootProject.ASM_VERSION}"
+    moduleonly "org.ow2.asm:asm-util:${rootProject.ASM_VERSION}"
+    moduleonly "org.ow2.asm:asm-analysis:${rootProject.ASM_VERSION}"
+    moduleonly "cpw.mods:bootstraplauncher:${rootProject.BOOTSTRAPLAUNCHER_VERSION}"
+
+    installer "cpw.mods:securejarhandler:${rootProject.SECUREJARHANDLER_VERSION}"
+    installer "org.ow2.asm:asm:${rootProject.ASM_VERSION}"
+    installer "org.ow2.asm:asm-commons:${rootProject.ASM_VERSION}"
+    installer "org.ow2.asm:asm-tree:${rootProject.ASM_VERSION}"
+    installer "org.ow2.asm:asm-util:${rootProject.ASM_VERSION}"
+    installer "org.ow2.asm:asm-analysis:${rootProject.ASM_VERSION}"
+    installer "net.minecraftforge:accesstransformers:${rootProject.ACCESSTRANSFORMERS_VERSION}"
+    installer 'org.antlr:antlr4-runtime:4.9.1' //Dep of AccessTransformer
+    installer "net.minecraftforge:eventbus:${rootProject.EVENTBUS_VERSION}"
+    installer "net.minecraftforge:forgespi:${rootProject.SPI_VERSION}"
+    installer "net.minecraftforge:coremods:${rootProject.COREMODS_VERSION}"
+    installer "cpw.mods:modlauncher:${rootProject.MODLAUNCHER_VERSION}"
+    installer 'net.minecraftforge:unsafe:0.2.+'
+    installer 'com.electronwill.night-config:core:3.6.4'
+    installer 'com.electronwill.night-config:toml:3.6.4'
+    installer 'org.apache.maven:maven-artifact:3.6.3'
+    installer 'org.apache.commons:commons-lang3:3.12.0'
+    installer 'net.jodah:typetools:0.8.3'
+    installer 'org.apache.logging.log4j:log4j-api:2.15.0' //TODO: Unpin in 1.18.1 or when Mojang bumps the Log4J version
+    installer 'org.apache.logging.log4j:log4j-core:2.15.0' //TODO: Unpin in 1.18.1 or when Mojang bumps the Log4J version
+    installer 'org.apache.logging.log4j:log4j-slf4j18-impl:2.15.0' //TODO: Unpin in 1.18.1 or when Mojang bumps the Log4J version
+    installer 'net.minecrell:terminalconsoleappender:1.2.0'
+    installer 'org.jline:jline-reader:3.12.+'   //Dep of TerminaalConsoleeAppender
+    installer 'org.jline:jline-terminal:3.12.+' //Dep of TerminaalConsoleeAppender
+    installer 'net.sf.jopt-simple:jopt-simple:5.0.4'
+    installer "org.spongepowered:mixin:${rootProject.MIXIN_VERSION}"
+    installer 'org.openjdk.nashorn:nashorn-core:15.3'
+    installer 'com.google.guava:guava:31.0.1-jre'
+    installer 'com.google.code.gson:gson:2.8.8'
+
+    /*
+    installer 'org.lwjgl:lwjgl:3.2.2'
+    installer 'org.lwjgl:lwjgl-glfw:3.2.2'
+    installer 'org.lwjgl:lwjgl-opengl:3.2.2'
+    installer 'org.lwjgl:lwjgl-stb:3.2.2'
+    */
+
+    fml project(':fmlcore')
+    fml project(':fmlloader')
+    fml project(':javafmllanguage')
+    fml project(':mclanguage')
+    runtimeOnly "cpw.mods:bootstraplauncher:${rootProject.BOOTSTRAPLAUNCHER_VERSION}"
+
+    packedLauncherJson project(':fmlloader')
+}

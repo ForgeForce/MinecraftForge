@@ -26,8 +26,7 @@ import java.util.stream.Collectors
 import static net.minecraftforge.forge.tasks.Util.getClasspath
 
 plugins {
-    id 'java-library'
-    id 'net.minecraftforge.gradle.patcher'
+    id 'fmlforge.shared-conventions'
     id 'org.cadixdev.licenser'
 }
 
@@ -75,28 +74,6 @@ ext {
 }
 
 configurations {
-    installer {
-        // Don't pull all libraries, if we're missing something, add it to the installer list so the installer knows to download it.
-        transitive = false
-    }
-    moduleonly
-    api.extendsFrom(installer)
-
-    fml // Contains the FML subprojects dependencies
-    packedInstallerJar {
-        extendsFrom fml
-        transitive = false
-    }
-    packedInstallerJson {
-        extendsFrom fml
-        transitive = false
-    }
-    implementation.extendsFrom fml
-
-    packedLauncherJson {
-        transitive = false
-    }
-
     versionJson {
         canBeResolved = true
     }
@@ -107,16 +84,9 @@ dependencies {
     testImplementation 'org.junit.vintage:junit-vintage-engine:5.+'
     testImplementation 'org.opentest4j:opentest4j:1.2.0' // needed for junit 5
     testImplementation 'org.hamcrest:hamcrest-all:1.3' // needs advanced matching for list order
-    fml project(':fmlcore')
-    fml project(':fmlloader')
-    fml project(':javafmllanguage')
-    fml project(':mclanguage')
-    runtimeOnly "cpw.mods:bootstraplauncher:${rootProject.BOOTSTRAPLAUNCHER_VERSION}"
 
-    packedLauncherJson project(':fmlloader')
     versionJson project(path: ':mcp', configuration: 'versionJson')
 }
-dependencies rootProject.sharedDeps
 
 patcher {
     excs.from file("$rootDir/src/main/resources/forge.exc")

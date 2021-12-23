@@ -7,8 +7,7 @@ import net.minecraftforge.forge.tasks.Util
 import static net.minecraftforge.forge.tasks.Util.getClasspath
 
 plugins {
-    id 'java-library'
-    id 'net.minecraftforge.gradle.patcher'
+    id 'fmlforge.shared-conventions'
 }
 
 ext {
@@ -27,42 +26,6 @@ sourceSets {
         }
     }
 }
-
-configurations {
-    moduleonly
-    installer {
-        // Don't pull all libraries, if we're missing something, add it to the installer list so the installer knows to download it.
-        transitive = false
-    }
-    api.extendsFrom(installer)
-
-    fml // Contains the FML subprojects dependencies
-    packedInstallerJar {
-        extendsFrom fml
-        transitive = false
-    }
-    packedInstallerJson {
-        extendsFrom fml
-        transitive = false
-    }
-    implementation.extendsFrom fml
-
-    packedLauncherJson {
-        transitive = false
-    }
-}
-
-// TODO: Better coordination between project dependencies and the installer.
-dependencies {
-    fml project(':fmlcore')
-    fml project(':fmlloader')
-    fml project(':javafmllanguage')
-    fml project(':mclanguage')
-    runtimeOnly "cpw.mods:bootstraplauncher:${rootProject.BOOTSTRAPLAUNCHER_VERSION}"
-
-    packedLauncherJson project(':fmlloader')
-}
-dependencies rootProject.sharedDeps
 
 patcher {
     parent = project(':mcp')
