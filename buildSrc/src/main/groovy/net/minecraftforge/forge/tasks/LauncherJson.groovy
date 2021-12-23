@@ -2,9 +2,11 @@ package net.minecraftforge.forge.tasks
 
 import groovy.json.JsonBuilder
 import org.gradle.api.DefaultTask
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.provider.SetProperty
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 
 import java.nio.file.Files
@@ -16,7 +18,7 @@ abstract class LauncherJson extends DefaultTask {
     @OutputFile abstract RegularFileProperty getOutput()
     @InputFiles abstract ConfigurableFileCollection getInput()
     @Input Map<String, Object> json = new LinkedHashMap<>()
-    @Input @Optional abstract SetProperty<String> getPackedDependencies()
+    @Input @Optional abstract Property<Configuration> getPackedConfiguration()
     
     @Internal final vanilla = project.project(':mcp').file('build/mcp/downloadJson/version.json')
     @Internal final timestamp = iso8601Now()
@@ -34,39 +36,22 @@ abstract class LauncherJson extends DefaultTask {
         getInput().from(project.tasks.universalJar.archiveFile,
                 project.project(':fmlloader').jar.archiveFile,
                 vanilla)
-                
-        project.afterEvaluate {
-            packedDependencies.get().forEach {
-                def jarTask = project.rootProject.tasks.findByPath(it)
-                dependsOn(jarTask)
-                input.from jarTask.archiveFile
-            }
-        }
+
+        input.from packedConfiguration
     }
 
     @TaskAction
     protected void exec() {
         if (!json.libraries)
             json.libraries = []
-        def libs = [:]
+        LinkedHashMap<String, Object> libs = [:]
         getArtifacts(project, project.configurations.installer, false).each { key, lib -> libs[key] = lib }
         getArtifacts(project, project.configurations.moduleonly, false).each { key, lib -> libs[key] = lib }
 
-        packedDependencies.get().collect{ project.rootProject.tasks.findByPath(it) }.forEach {
-            def path = Util.getMavenPath(it)
-            def key = Util.getMavenDep(it)
-            
-            libs[key] = [
-                name: key,
-                downloads: [
-                    artifact: [
-                        path: path,
-                        url: "https://maven.minecraftforge.net/${path}",
-                        sha1: it.archiveFile.get().asFile.sha1(),
-                        size: it.archiveFile.get().asFile.length()
-                    ]
-                ]
-            ]
+        if (packedConfiguration.isPresent()) {
+            for (ResolvedArtifact child : packedConfiguration.get().resolvedConfiguration.resolvedArtifacts) {
+                InstallerJson.addLibrary(libs, Util.getMavenDep(child), Util.getMavenPath(child), child.file)
+            }
         }
         libs.each { key, lib -> json.libraries.add(lib) }
         Files.writeString(output.get().asFile.toPath(), new JsonBuilder(json).toPrettyString())

@@ -2,6 +2,7 @@ import net.minecraftforge.forge.tasks.CheckATs
 import net.minecraftforge.forge.tasks.CheckExcs
 import net.minecraftforge.forge.tasks.CheckPatches
 import net.minecraftforge.forge.tasks.CheckSAS
+import net.minecraftforge.forge.tasks.ConfigureInstallerJar
 import net.minecraftforge.forge.tasks.Crowdin
 import net.minecraftforge.forge.tasks.DownloadLibraries
 import net.minecraftforge.forge.tasks.FieldCompareFinder
@@ -81,6 +82,21 @@ configurations {
     }
     moduleonly
     api.extendsFrom(installer)
+
+    fml // Contains the FML subprojects dependencies
+    packedInstallerJar {
+        extendsFrom fml
+        transitive = false
+    }
+    packedInstallerJson {
+        extendsFrom fml
+        transitive = false
+    }
+    implementation.extendsFrom fml
+
+    packedLauncherJson {
+        transitive = false
+    }
 }
 
 dependencies {
@@ -88,11 +104,13 @@ dependencies {
     testImplementation 'org.junit.vintage:junit-vintage-engine:5.+'
     testImplementation 'org.opentest4j:opentest4j:1.2.0' // needed for junit 5
     testImplementation 'org.hamcrest:hamcrest-all:1.3' // needs advanced matching for list order
-    implementation project(':fmlcore')
-    implementation project(':fmlloader')
-    implementation project(':javafmllanguage')
-    implementation project(':mclanguage')
+    fml project(':fmlcore')
+    fml project(':fmlloader')
+    fml project(':javafmllanguage')
+    fml project(':mclanguage')
     runtimeOnly "cpw.mods:bootstraplauncher:${rootProject.BOOTSTRAPLAUNCHER_VERSION}"
+
+    packedLauncherJson project(':fmlloader')
 }
 dependencies rootProject.sharedDeps
 
@@ -330,7 +348,7 @@ tasks.named('genPatches').configure {
 }
 
 var launcherJson = tasks.register('launcherJson', LauncherJson) {
-    packedDependencies = [':fmlloader:jar']
+    packedConfiguration = configurations.packedLauncherJson
     doFirst {
         def forge_client = project(':forge').patcher.runs.forge_client
         json = [
@@ -363,26 +381,37 @@ var launcherJson = tasks.register('launcherJson', LauncherJson) {
     }
 }
 
-// TODO: refactor InstallerJson to not use afterEvaluate so we don't need to eagerly create this task
-tasks.create('installerJson', InstallerJson) {
+var installerJson = tasks.create('installerJson', InstallerJson) {
     dependsOn launcherJson, 'genClientBinPatches', 'applyClientBinPatches', 'applyServerBinPatches', 'signUniversalJar'
     ext {
         // remove :fatjar
         BIN_PATCHER = rootProject.BINPATCH_TOOL.substring(0, rootProject.BINPATCH_TOOL.length() - 1 - rootProject.BINPATCH_TOOL.split(':')[3].length())
     }
-    input.from tasks.named('applyClientBinPatches').flatMap { output }, tasks.named('applyServerBinPatches').flatMap { output }
-    input.from tasks.named('genClientBinPatches').flatMap { toolJar }, launcherJson.flatMap { output }
+    input.from tasks.named('genClientBinPatches').flatMap { it.toolJar }, launcherJson.flatMap { it.output }
     icon = rootProject.file('icon.ico')
-    packedDependencies = PACKED_DEPS
+    packedConfiguration = configurations.packedInstallerJson
+
+    ['client', 'server'].each { side ->
+        ['slim', 'extra'].each { type ->
+            input.from tasks.named("download${side.capitalize()}${type.capitalize()}").flatMap { it.output }
+        }
+        input.from tasks.named("create${side.capitalize()}SRG").flatMap { it.output }
+        input.from tasks.named("apply${side.capitalize()}BinPatches").flatMap { it.output }
+    }
+    input.from tasks.named('universalJar', Zip).flatMap { it.archiveFile }
 
     doFirst {
         def libs = libraries
+
+        var universalJarTask = tasks.named('universalJar', Zip).get()
+        addLibrary(libs, Util.getMavenDep(universalJarTask), Util.getMavenPath(universalJarTask), universalJarTask.archiveFile.get().asFile)
+
         net.minecraftforge.gradle.common.util.Artifact mcpArtifact = MCP_ARTIFACT.get()
         json = [
-            _comment_: launcherJson.comment,
+            _comment_: launcherJson.get().comment,
             spec: 1,
             profile: project.name,
-            version: launcherJson.id,
+            version: launcherJson.get().id,
             path: null,
             minecraft: rootProject.MC_VERSION,
             serverJarPath: '{LIBRARY_DIR}/net/minecraft/server/{MINECRAFT_VERSION}/server-{MINECRAFT_VERSION}.jar',
@@ -602,9 +631,9 @@ tasks.named('universalJar').configure {
     }
 }
 
+var configureInstallerJar = tasks.register('configureInstallerJar', ConfigureInstallerJar)
 var installerJar = tasks.register('installerJar', InstallerJar) {
-    dependsOn 'genClientBinPatches', 'genServerBinPatches', 'signUniversalJar', launcherJson
-    packedDependencies = PACKED_DEPS
+    dependsOn configureInstallerJar, 'genClientBinPatches', 'genServerBinPatches', 'signUniversalJar'
     from(rootProject.extraTxts)
     from(rootProject.file('/forge_installer_logo.png')) {
         rename { 'big_logo.png' }
@@ -615,6 +644,21 @@ var installerJar = tasks.register('installerJar', InstallerJar) {
     from(genServerBinPatches.output) {
         rename { 'data/server.lzma' }
     }
+
+    def downloadInstaller = tasks.named('downloadInstaller')
+
+    dependsOn installerJson, launcherJson, downloadInstaller
+    from installerJson.flatMap { it.output }, launcherJson.flatMap { it.output }
+
+    from(project.zipTree(downloadInstaller.flatMap { it.output })) {
+        duplicatesStrategy = 'exclude'
+    }
+}
+
+configureInstallerJar.configure {
+    targetTask = installerJar
+    addPackedDependencies = !System.env.MAVEN_USER
+    packedConfiguration = configurations.packedInstallerJar
 }
 
 var makeMdk = tasks.register('makeMdk', Zip) {

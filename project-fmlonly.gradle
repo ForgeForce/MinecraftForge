@@ -1,3 +1,4 @@
+import net.minecraftforge.forge.tasks.ConfigureInstallerJar
 import net.minecraftforge.forge.tasks.InstallerJar
 import net.minecraftforge.forge.tasks.InstallerJson
 import net.minecraftforge.forge.tasks.LauncherJson
@@ -34,15 +35,32 @@ configurations {
         transitive = false
     }
     api.extendsFrom(installer)
+
+    fml // Contains the FML subprojects dependencies
+    packedInstallerJar {
+        extendsFrom fml
+        transitive = false
+    }
+    packedInstallerJson {
+        extendsFrom fml
+        transitive = false
+    }
+    implementation.extendsFrom fml
+
+    packedLauncherJson {
+        transitive = false
+    }
 }
 
 // TODO: Better coordination between project dependencies and the installer.
 dependencies {
-    implementation project(':fmlcore')
-    implementation project(':fmlloader')
-    implementation project(':javafmllanguage')
-    implementation project(':mclanguage')
+    fml project(':fmlcore')
+    fml project(':fmlloader')
+    fml project(':javafmllanguage')
+    fml project(':mclanguage')
     runtimeOnly "cpw.mods:bootstraplauncher:${rootProject.BOOTSTRAPLAUNCHER_VERSION}"
+
+    packedLauncherJson project(':fmlloader')
 }
 dependencies rootProject.sharedDeps
 
@@ -74,8 +92,8 @@ patcher {
 
 rootProject.sharedFmlonlyForge.call(project)
 
-tasks.register('launcherJson', LauncherJson) {
-    packedDependencies = [':fmlloader:jar']
+var launcherJson = tasks.register('launcherJson', LauncherJson) {
+    packedConfiguration = configurations.packedLauncherJson
     doFirst {
         def fmlonly_client = project(':fmlonly').patcher.runs.fmlonly_client
         json = [
@@ -108,14 +126,25 @@ tasks.register('launcherJson', LauncherJson) {
     }
 }
 
-// TODO: refactor InstallerJson to not use afterEvaluate so we don't need to eagerly create this task
-tasks.create('installerJson', InstallerJson) {
+var installerJson = tasks.register('installerJson', InstallerJson) {
     dependsOn 'signUniversalJar'
     icon = rootProject.file('icon.ico')
-    packedDependencies = PACKED_DEPS
+    packedConfiguration = configurations.packedInstallerJson
+
+    ['client', 'server'].each { side ->
+        ['slim', 'extra'].each { type ->
+            input.from tasks.named("download${side.capitalize()}${type.capitalize()}").flatMap { it.output }
+        }
+        input.from tasks.named("create${side.capitalize()}SRG").flatMap { it.output }
+    }
+    input.from tasks.named('universalJar', Zip).flatMap { it.archiveFile }
 
     doFirst {
         def libs = libraries
+
+        var universalJarTask = tasks.named('universalJar', Zip).get()
+        addLibrary(libs, Util.getMavenDep(universalJarTask), Util.getMavenPath(universalJarTask), universalJarTask.archiveFile.get().asFile)
+
         net.minecraftforge.gradle.common.util.Artifact mcpArtifact = MCP_ARTIFACT.get()
         json = [
             _comment_: launcherJson.comment,
@@ -299,13 +328,29 @@ tasks.create('installerJson', InstallerJson) {
     }
 }
 
+var configureInstallerJar = tasks.register('configureInstallerJar', ConfigureInstallerJar)
 var installerJar = tasks.register('installerJar', InstallerJar) {
-    packedDependencies = PACKED_DEPS
+    dependsOn configureInstallerJar
     from(rootProject.extraTxts)
     //TODO: make FML installer logo?
     from(rootProject.file('/forge_installer_logo.png')) {
         rename { 'big_logo.png' }
     }
+
+    def downloadInstaller = tasks.named('downloadInstaller')
+
+    dependsOn installerJson, launcherJson, downloadInstaller
+    from installerJson.flatMap { it.output }, launcherJson.flatMap { it.output }
+
+    from(project.zipTree(downloadInstaller.flatMap { it.output })) {
+        duplicatesStrategy = 'exclude'
+    }
+}
+
+configureInstallerJar.configure {
+    targetTask = installerJar
+    addPackedDependencies = !System.env.MAVEN_USER
+    packedConfiguration = configurations.packedInstallerJar
 }
 
 publishing {

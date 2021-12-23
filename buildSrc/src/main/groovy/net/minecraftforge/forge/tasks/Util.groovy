@@ -2,6 +2,7 @@ package net.minecraftforge.forge.tasks
 
 import groovy.json.JsonBuilder
 import groovy.json.JsonSlurper
+import org.gradle.api.artifacts.ResolvedArtifact
 
 import java.io.File
 import java.security.MessageDigest
@@ -53,7 +54,7 @@ public class Util {
 	}
 	
 	public static def getArtifacts(project, config, classifiers) {
-		def ret = [:]
+		LinkedHashMap<String, Object> ret = [:]
 		config.resolvedConfiguration.resolvedArtifacts.each {
 			def art = [
 				group: it.moduleVersion.id.group,
@@ -107,6 +108,18 @@ public class Util {
         def classifier = task.archiveClassifier.get()
         return "${task.project.group}:${task.project.name}:${task.project.version}" + (classifier == '' ? '' : ':' + classifier)
     }
+
+	static GString getMavenPath(ResolvedArtifact artifact) {
+		var id = artifact.moduleVersion.id
+		var classifier = artifact.classifier?.trim() ? '-' + artifact.classifier : ''
+		return "${id.group.replace('.', '/')}/${id.name}/${id.version}/${id.name}-${id.version}${classifier}.${artifact.extension}"
+	}
+
+	static GString getMavenDep(ResolvedArtifact artifact) {
+		var id = artifact.moduleVersion.id
+		var classifier = artifact.classifier?.trim() ? '-' + artifact.classifier : ''
+		return "${id.group}:${id.name}:${id.version}${classifier}"
+	}
 
 	public static def iso8601Now() { new Date().iso8601() }
 
