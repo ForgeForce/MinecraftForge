@@ -381,7 +381,7 @@ var launcherJson = tasks.register('launcherJson', LauncherJson) {
     }
 }
 
-var installerJson = tasks.create('installerJson', InstallerJson) {
+var installerJson = tasks.register('installerJson', InstallerJson) {
     dependsOn launcherJson, 'genClientBinPatches', 'applyClientBinPatches', 'applyServerBinPatches', 'signUniversalJar'
     ext {
         // remove :fatjar
