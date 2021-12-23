@@ -7,3 +7,15 @@ mcp {
     config rootProject.MC_VERSION + '-' + rootProject.MCP_VERSION
     pipeline = 'joined'
 }
+
+configurations {
+    versionJson {
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    versionJson(project.layout.buildDirectory.dir('mcp').map { it.dir('downloadJson').file('version.json') }) {
+        builtBy tasks.named('setupMCP')
+    }
+}

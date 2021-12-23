@@ -70,7 +70,6 @@ ext {
     // ForgeMC is a unique identifier for every MC version we have supported.
     // Essentially, the same as the old, except dropping the first number, and the builds are no longer unique.
     MCP_ARTIFACT = project.provider { project(':mcp') }.flatMap { it.mcp.config }
-    VERSION_JSON = project(':mcp').file('build/mcp/downloadJson/version.json')
     PACKED_DEPS = [':fmlcore:jar', ':fmlloader:jar', ':javafmllanguage:jar', ':mclanguage:jar']
     MAVEN_PATH = "${group.replace('.', '/')}/${project.name}/${rootProject.VERSION}"
 }
@@ -97,6 +96,10 @@ configurations {
     packedLauncherJson {
         transitive = false
     }
+
+    versionJson {
+        canBeResolved = true
+    }
 }
 
 dependencies {
@@ -111,6 +114,7 @@ dependencies {
     runtimeOnly "cpw.mods:bootstraplauncher:${rootProject.BOOTSTRAPLAUNCHER_VERSION}"
 
     packedLauncherJson project(':fmlloader')
+    versionJson project(path: ':mcp', configuration: 'versionJson')
 }
 dependencies rootProject.sharedDeps
 
@@ -279,8 +283,7 @@ tasks.register('crowdin', Crowdin) {
 rootProject.sharedFmlonlyForge.call(project)
 
 var downloadLibraries = tasks.register('downloadLibraries', DownloadLibraries) {
-    dependsOn ':mcp:setupMCP'
-    input = VERSION_JSON
+    input = configurations.versionJson.elements.map { it[0].asFile }
     output = rootProject.file('build/libraries/')
 }
 
