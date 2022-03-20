@@ -170,18 +170,16 @@ public class RegistryManager
     }
 
 
-    public static CompletableFuture<List<Throwable>> preNewRegistryEvent(final Executor executor,
+    public static CompletableFuture<Void> preNewRegistryEvent(final Executor executor,
             final IModStateTransition.EventGenerator<? extends NewRegistryEvent> eventGenerator)
     {
-        return CompletableFuture.runAsync(() -> vanillaRegistryKeys = Set.copyOf(Registry.REGISTRY.keySet()), executor)
-                .handle((v, t) -> t != null ? Collections.singletonList(t) : Collections.emptyList());
+        return CompletableFuture.runAsync(() -> vanillaRegistryKeys = Set.copyOf(Registry.REGISTRY.keySet()), executor);
     }
 
-    public static CompletableFuture<List<Throwable>> postNewRegistryEvent(final Executor executor,
+    public static CompletableFuture<Void> postNewRegistryEvent(final Executor executor,
             final IModStateTransition.EventGenerator<? extends NewRegistryEvent> eventGenerator)
     {
-        return CompletableFuture.runAsync(() -> eventGenerator.apply(null).fill(), executor)
-                .handle((v, t) -> t != null ? Collections.singletonList(t) : Collections.emptyList());
+        return CompletableFuture.runAsync(() -> eventGenerator.apply(null).fill(), executor);
     }
 
     private void addLegacyName(ResourceLocation legacyName, ResourceLocation name)

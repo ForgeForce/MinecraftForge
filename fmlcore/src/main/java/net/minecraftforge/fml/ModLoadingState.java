@@ -27,7 +27,7 @@ public record ModLoadingState(String name, String previous,
                               Optional<IModStateTransition> transition) implements IModLoadingState {
     @Override
     public <T extends Event & IModBusEvent>
-    Optional<CompletableFuture<List<Throwable>>> buildTransition(final Executor syncExecutor,
+    Optional<CompletableFuture<Void>> buildTransition(final Executor syncExecutor,
                                                                  final Executor parallelExecutor,
                                                                  final Function<Executor, CompletableFuture<Void>> preSyncTask,
                                                                  final Function<Executor, CompletableFuture<Void>> postSyncTask) {

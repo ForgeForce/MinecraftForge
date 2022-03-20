@@ -32,7 +32,7 @@ record ParallelTransition(ModLoadingStage stage, Class<? extends ParallelDispatc
     }
 
     @Override
-    public BiFunction<Executor, CompletableFuture<List<Throwable>>, CompletableFuture<List<Throwable>>> finalActivityGenerator() {
+    public BiFunction<Executor, CompletableFuture<Void>, CompletableFuture<Void>> finalActivityGenerator() {
         return (e, prev) -> prev.thenApplyAsync(t -> {
             stage.getDeferredWorkQueue().runTasks();
             return t;
@@ -40,12 +40,12 @@ record ParallelTransition(ModLoadingStage stage, Class<? extends ParallelDispatc
     }
 
     @Override
-    public BiFunction<Executor, ? extends EventGenerator<?>, CompletableFuture<List<Throwable>>> preDispatchHook() {
-        return (t, f) -> CompletableFuture.completedFuture(Collections.emptyList());
+    public BiFunction<Executor, ? extends EventGenerator<?>, CompletableFuture<Void>> preDispatchHook() {
+        return (t, f) -> CompletableFuture.completedFuture(null);
     }
 
     @Override
-    public BiFunction<Executor, ? extends EventGenerator<?>, CompletableFuture<List<Throwable>>> postDispatchHook() {
-        return (t, f) -> CompletableFuture.completedFuture(Collections.emptyList());
+    public BiFunction<Executor, ? extends EventGenerator<?>, CompletableFuture<Void>> postDispatchHook() {
+        return (t, f) -> CompletableFuture.completedFuture(null);
     }
 }

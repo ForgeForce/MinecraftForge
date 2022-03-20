@@ -56,7 +56,7 @@ public interface IModLoadingState {
      * @see #buildTransition(Executor, Executor, Function, Function)
      */
     default <T extends Event & IModBusEvent>
-    Optional<CompletableFuture<List<Throwable>>> buildTransition(final Executor syncExecutor,
+    Optional<CompletableFuture<Void>> buildTransition(final Executor syncExecutor,
                                                                  final Executor parallelExecutor) {
         return buildTransition(syncExecutor, parallelExecutor,
                 e -> CompletableFuture.runAsync(() -> {}, e),
@@ -75,7 +75,7 @@ public interface IModLoadingState {
      * @return a transition task for this state
      */
     <T extends Event & IModBusEvent>
-    Optional<CompletableFuture<List<Throwable>>> buildTransition(final Executor syncExecutor,
+    Optional<CompletableFuture<Void>> buildTransition(final Executor syncExecutor,
                                                                  final Executor parallelExecutor,
                                                                  final Function<Executor, CompletableFuture<Void>> preSyncTask,
                                                                  final Function<Executor, CompletableFuture<Void>> postSyncTask);

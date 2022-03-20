@@ -210,7 +210,7 @@ public class ModLoader
         state.buildTransition(syncExecutor, parallelExecutor, preSyncTask, postSyncTask).ifPresent(t->waitForTransition(state, syncExecutor, ticker, t));
     }
 
-    private void waitForTransition(final IModLoadingState state, final ModWorkManager.DrivenExecutor syncExecutor, final Runnable ticker, final CompletableFuture<List<Throwable>> transition) {
+    private void waitForTransition(final IModLoadingState state, final ModWorkManager.DrivenExecutor syncExecutor, final Runnable ticker, final CompletableFuture<Void> transition) {
         while (!transition.isDone()) {
             syncExecutor.drive(ticker);
         }

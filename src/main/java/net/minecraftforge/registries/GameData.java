@@ -356,17 +356,17 @@ public class GameData
         return keys.stream().map(rl -> IModStateTransition.EventGenerator.fromFunction(mc -> registerEventGenerator.apply(rl)));
     }
 
-    public static CompletableFuture<List<Throwable>> preRegistryEventDispatch(final Executor executor, final IModStateTransition.EventGenerator<? extends RegistryEvent.Register<?>> eventGenerator) {
+    public static CompletableFuture<Void> preRegistryEventDispatch(final Executor executor, final IModStateTransition.EventGenerator<? extends RegistryEvent.Register<?>> eventGenerator) {
         return CompletableFuture.runAsync(()-> {
                     final RegistryEvent.Register<?> event = eventGenerator.apply(null);
                     final ResourceLocation rl = event.getName();
                     ForgeRegistry<?> fr = (ForgeRegistry<?>) event.getRegistry();
                     StartupMessageManager.modLoaderConsumer().ifPresent(s -> s.accept("REGISTERING " + rl));
                     fr.unfreeze();
-                }, executor).thenApply(v->Collections.emptyList());
+                }, executor);
     }
 
-    public static CompletableFuture<List<Throwable>> postRegistryEventDispatch(final Executor executor, final IModStateTransition.EventGenerator<? extends RegistryEvent.Register<?>> eventGenerator) {
+    public static CompletableFuture<Void> postRegistryEventDispatch(final Executor executor, final IModStateTransition.EventGenerator<? extends RegistryEvent.Register<?>> eventGenerator) {
         return CompletableFuture.runAsync(()-> {
             final RegistryEvent.Register<?> event = eventGenerator.apply(null);
             final ResourceLocation rl = event.getName();
@@ -375,11 +375,11 @@ public class GameData
             LOGGER.debug(REGISTRIES, "Applying holder lookups: {}", rl.toString());
             ObjectHolderRegistry.applyObjectHolders(rl::equals);
             LOGGER.debug(REGISTRIES, "Holder lookups applied: {}", rl.toString());
-        }, executor).handle((v, t)->t != null ? Collections.singletonList(t): Collections.emptyList());
+        }, executor);
     }
 
     @SuppressWarnings("deprecation")
-    public static CompletableFuture<List<Throwable>> checkForRevertToVanilla(final Executor executor, final CompletableFuture<List<Throwable>> listCompletableFuture) {
+    public static CompletableFuture<Void> checkForRevertToVanilla(final Executor executor, final CompletableFuture<Void> listCompletableFuture) {
         return listCompletableFuture.whenCompleteAsync((errors, except) -> {
             if (except != null) {
                 LOGGER.fatal("Detected errors during registry event dispatch, rolling back to VANILLA state");

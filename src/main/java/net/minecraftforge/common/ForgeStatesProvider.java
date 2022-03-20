@@ -38,9 +38,9 @@ public class ForgeStatesProvider implements IModStateProvider {
     }
 
     // TODO 1.19: Pass the event instances to the pre and post hooks rather than the event generators
-    static record SerialTransition<T extends Event & IModBusEvent>(Supplier<Stream<EventGenerator<?>>> eventStream, BiFunction<Executor, ? extends EventGenerator<T>, CompletableFuture<List<Throwable>>> preDispatchHook, BiFunction<Executor, ? extends EventGenerator<T>, CompletableFuture<List<Throwable>>> postDispatchHook, BiFunction<Executor, CompletableFuture<List<Throwable>>, CompletableFuture<List<Throwable>>> finalActivityGenerator) implements IModStateTransition {
+    static record SerialTransition<T extends Event & IModBusEvent>(Supplier<Stream<EventGenerator<?>>> eventStream, BiFunction<Executor, ? extends EventGenerator<T>, CompletableFuture<Void>> preDispatchHook, BiFunction<Executor, ? extends EventGenerator<T>, CompletableFuture<Void>> postDispatchHook, BiFunction<Executor, CompletableFuture<Void>, CompletableFuture<Void>> finalActivityGenerator) implements IModStateTransition {
         public static <T extends Event & IModBusEvent> SerialTransition<T> of(Supplier<Stream<EventGenerator<?>>> eventStream) {
-            return new SerialTransition<T>(eventStream, (t, f)->CompletableFuture.completedFuture(Collections.emptyList()), (t, f)->CompletableFuture.completedFuture(Collections.emptyList()), (e, prev) ->prev.thenApplyAsync(Function.identity(), e));
+            return new SerialTransition<T>(eventStream, (t, f)->CompletableFuture.completedFuture(null), (t, f)->CompletableFuture.completedFuture(null), (e, prev) ->prev.thenApplyAsync(Function.identity(), e));
         }
         @Override
         public Supplier<Stream<EventGenerator<?>>> eventFunctionStream() {
