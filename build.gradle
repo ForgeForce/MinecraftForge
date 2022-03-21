@@ -11,7 +11,7 @@ import org.apache.tools.ant.filters.ReplaceTokens
 plugins {
     id 'org.cadixdev.licenser' version '0.6.1'
     id 'com.github.ben-manes.versions' version '0.36.0'
-    id 'net.minecraftforge.gradleutils' version '1.+'
+    id 'net.minecraftforge.gradleutils' version '2.+'
     id 'eclipse'
     id 'de.undercouch.download' version '4.1.2'
     id 'org.javamodularity.moduleplugin' version '1.8.3' apply false
@@ -29,6 +29,20 @@ ext {
             keystore: project.properties.keystore
         ]
     }
+    MAPPING_CHANNEL = 'official'
+    MAPPING_VERSION = '1.18.2'
+    MC_VERSION = '1.18.2'
+    MCP_VERSION = '20220228.144236'
+    SPI_VERSION = '4.0.10'
+    ACCESSTRANSFORMERS_VERSION = '8.0.4'
+    COREMODS_VERSION = '5.0.1'
+    EVENTBUS_VERSION = '5.0.3'
+    MODLAUNCHER_VERSION = '9.1.3'
+    SECUREJARHANDLER_VERSION = '1.0.3'
+    BOOTSTRAPLAUNCHER_VERSION = '1.0.0'
+    ASM_VERSION = '9.2'
+    INSTALLER_VERSION = '2.1.+'
+    MIXIN_VERSION = '0.8.5'
 
     GIT_INFO = gradleutils.gitInfo
     VERSION = gradleutils.getFilteredMCTagOffsetBranchVersion(true, '[0-9]', MC_VERSION)
@@ -38,6 +52,12 @@ ext {
     extraTxts = []
     changelogFile = null as File
     sharedFmlonlyForge = {} as Closure
+    SPECIAL_SOURCE = 'net.md-5:SpecialSource:1.10.0'
+    BINPATCH_TOOL = 'net.minecraftforge:binarypatcher:1.0.12:fatjar'
+    INSTALLER_TOOLS = 'net.minecraftforge:installertools:1.2.10'
+    JAR_SPLITTER = 'net.minecraftforge:jarsplitter:1.1.4'
+    FART = 'net.minecraftforge:ForgeAutoRenamingTool:0.1.17:all'
+    MIN_TAG_FOR_CHANGELOG = "39.0"
 }
 version = ext.VERSION
 
@@ -46,9 +66,14 @@ println('Version: ' + rootProject.VERSION +
         ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ')' +
         ' Arch: ' + System.getProperty('os.arch'))
 
+changelog {
+    fromTag MIN_TAG_FOR_CHANGELOG
+}
+
 extraTxts = [
     rootProject.file('CREDITS.txt'),
-    rootProject.file('LICENSE.txt')
+    rootProject.file('LICENSE.txt'),
+    rootProject.tasks.createChangelog.outputFile
 ]
 
 changelogFile = rootProject.file('build/changelog.txt')
@@ -180,6 +205,9 @@ sharedFmlonlyForge = { Project prj ->
                 environment 'MCP_MAPPINGS', '{mcp_mappings}'
 
                 property 'nativesDirectory', '{natives}'
+                if (prj.name == 'forge') {
+                    property 'forge.enableGameTest', 'true'
+                }
 
                 args '--launchTarget', "${launchPrefix}clientuserdev"
                 args '--version', 'MOD_DEV'
@@ -191,7 +219,20 @@ sharedFmlonlyForge = { Project prj ->
                 environment 'MOD_CLASSES', '{source_roots}'
                 environment 'MCP_MAPPINGS', '{mcp_mappings}'
 
+                if (prj.name == 'forge') {
+                    property 'forge.enableGameTest', 'true'
+                }
+
                 args '--launchTarget', "${launchPrefix}serveruserdev"
+            }
+
+            if (prj.name == 'forge') {
+                gameTestServer {
+                    environment 'MOD_CLASSES', '{source_roots}'
+                    environment 'MCP_MAPPINGS', '{mcp_mappings}'
+
+                    args '--launchTarget', "${launchPrefix}gametestserveruserdev"
+                }
             }
 
             data {
@@ -225,7 +266,8 @@ sharedFmlonlyForge = { Project prj ->
 
         // SecureJarHandler bootstrap values.
         run.property 'ignoreList', prj.configurations.moduleonly.files.collect {it.name.replaceAll(/([-_]([.\d]*\d+)|\.jar$)/, '') }.join(',') + ",client-extra,fmlcore,javafmllanguage,mclanguage,${prj.name}-"
-        run.property 'mergeModules', 'jna-5.8.0.jar,jna-platform-58.0.jar,java-objc-bridge-1.0.0.jar'
+        // FIXME: Without this jna doesn't work at runtime. Someone figure out why please?
+        run.property 'mergeModules', 'jna-5.10.0.jar,jna-platform-5.10.0.jar,java-objc-bridge-1.0.0.jar'
         if (userdevRuns.contains(run)) {
             run.property 'legacyClassPath.file', '{minecraft_classpath_file}'
             run.jvmArgs '-p', '{modules}'
@@ -234,6 +276,7 @@ sharedFmlonlyForge = { Project prj ->
             run.jvmArgs '-p', prj.configurations.moduleonly.files.collect { it.path }.join(File.pathSeparator)
         }
         run.jvmArgs '--add-modules', 'ALL-MODULE-PATH'
+        // Additions to these JVM module args should be mirrored to server_files/args.txt and other similar blocks in the buildscript
         run.jvmArgs '--add-opens', 'java.base/java.util.jar=cpw.mods.securejarhandler'
         run.jvmArgs '--add-exports', 'java.base/sun.security.util=cpw.mods.securejarhandler'
         run.jvmArgs '--add-exports', 'jdk.naming.dns/com.sun.jndi.dns=java.naming'
@@ -344,4 +387,16 @@ tasks.register('setup', Task) {  //These must be strings so that we can do lazy 
     if (symlinkValid)
         dependsOn ':fmlonly:extractMapped'
     dependsOn ':forge:extractMapped'
+}
+
+//Also output FMLOnly when building a version.
+if (System.env.TEAMCITY_VERSION) {
+    //Only setup the CI environment if and only if the environment variables are set.
+    tasks.configureTeamCity {
+        doLast {
+            println "##teamcity[buildNumber '${project(':forge').version}']"
+            println "##teamcity[setParameter name='env.PUBLISHED_JAVA_ARTIFACT_VERSION' value='${project(':forge').version}']"
+            println "##teamcity[setParameter name='env.PUBLISHED_JAVA_FML_ARTIFACT_VERSION' value='${project(':fmlonly').version}']"
+        }
+    }
 }

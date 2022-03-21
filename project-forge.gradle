@@ -111,6 +111,7 @@ patcher {
             parent runs.forge_client
             taskName 'forge_test_client'
 
+            property 'forge.enableGameTest', 'true'
             environment 'MOD_CLASSES', 'dummy' // Needed to work around FG limitation, FG will replace this!
 
             ideaModule "${rootProject.name}.${project.name}.test"
@@ -133,7 +134,29 @@ patcher {
             parent runs.forge_server
             taskName 'forge_test_server'
 
+            property 'forge.enableGameTest', 'true'
             environment 'MOD_CLASSES', 'dummy' // Needed to work around FG limitation, FG will replace this!
+
+            ideaModule "${rootProject.name}.${project.name}.test"
+
+            mods {
+                tests { sources sourceSets.test }
+            }
+        }
+
+        forge_gameTestServer {
+            taskName 'forge_gameTestServer'
+            args '--launchTarget', 'forgegametestserverdev'
+            ideaModule "${rootProject.name}.${project.name}.main"
+
+            mods {
+                minecraft { source sourceSets.main }
+            }
+        }
+
+        forge_test_gameTestServer {
+            parent runs.forge_gameTestServer
+            taskName 'forge_test_gameTestServer'
 
             ideaModule "${rootProject.name}.${project.name}.test"
 
@@ -187,6 +210,7 @@ patcher {
                         '--mod', 'custom_tag_types_test',
                         '--mod', 'new_model_loader_test',
                         '--mod', 'remove_tag_datagen_test',
+                        '--mod', 'tag_based_tool_types',
                         '--output', rootProject.file('src/generated_test/resources/'),
                         '--existing', sourceSets.main.resources.srcDirs[0],
                         '--existing', sourceSets.test.resources.srcDirs[0]
@@ -200,7 +224,8 @@ ext {
         '/': [
             'Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
             'GitCommit': gradleutils.gitInfo.abbreviatedId,
-            'Git-Branch': gradleutils.gitInfo.branch
+            'Git-Branch': gradleutils.gitInfo.branch,
+            'FML-System-Mods': 'forge'
         ] as LinkedHashMap,
         'net/minecraftforge/versions/forge/': [
             'Specification-Title':      'Forge',
@@ -253,6 +278,7 @@ tasks.register('crowdin', Crowdin) {
 rootProject.sharedFmlonlyForge.call(project)
 
 var downloadLibraries = tasks.register('downloadLibraries', DownloadLibraries) {
+    dependsOn ':mcp:setupMCP' // TODO: check?
     input = configurations.versionJson.elements.map { it[0].asFile }
     output = rootProject.file('build/libraries/')
 }
@@ -344,6 +370,7 @@ var launcherJson = tasks.register('launcherJson', LauncherJson) {
                       '-DlibraryDirectory=${library_directory}',
                       '-p', Util.getArtifacts(project, configurations.moduleonly, false).values().collect{'${library_directory}/' + it.downloads.artifact.path}.join('${classpath_separator}'),
                       '--add-modules', 'ALL-MODULE-PATH',
+                      // Additions to these JVM module args should be mirrored to server_files/args.txt and other similar blocks in the buildscript
                       '--add-opens', 'java.base/java.util.jar=cpw.mods.securejarhandler',
                       '--add-exports', 'java.base/sun.security.util=cpw.mods.securejarhandler',
                       '--add-exports', 'jdk.naming.dns/com.sun.jndi.dns=java.naming'
@@ -718,11 +745,6 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifact tasks.named('universalJar')
-            if (rootProject.changelogFile.exists()) {
-                artifact(rootProject.changelogFile) {
-                    classifier = 'changelog'
-                }
-            }
             artifact installerJar
             //TODO: installer-win
             artifact makeMdk
@@ -733,3 +755,7 @@ publishing {
 }
 // Since we need the modules in the bootstrap, we need to make sure they are compiled before we do each run
 afterEvaluate { tasks.named('prepareRuns').configure { dependsOn(':fmlcore:jar', ':fmlloader:jar', ':javafmllanguage:jar', ':mclanguage:jar') } }
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
