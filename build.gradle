@@ -915,6 +915,18 @@ project(':forge') {
                 ]
             }
         }
+        mixin {
+            java {
+                srcDirs = [
+                    "$rootDir/src/mixin/java"
+                ]
+            }
+            resources {
+                srcDirs = [
+                    "$rootDir/src/mixin/resources"
+                ]
+            }
+        }
     }
     //Eclipse adds the sourcesets twice, once where we tell it to, once in the projects folder. No idea why. So delete them
     eclipse.classpath.file.whenMerged { cls -> cls.entries.removeIf { e -> e instanceof SourceFolder && e.path.startsWith('src/') && !e.path.startsWith('src/main/') } }
@@ -937,6 +949,9 @@ project(':forge') {
         }
         moduleonly
         api.extendsFrom(installer)
+        mixinImplementation.extendsFrom implementation
+        mixinCompileClasspath.extendsFrom compileClasspath
+        mixinRuntimeClasspath.extendsFrom runtimeClasspath
     }
 
     dependencies {
@@ -949,8 +964,11 @@ project(':forge') {
         implementation project(':javafmllanguage')
         implementation project(':lowcodelanguage')
         implementation project(':mclanguage')
-        annotationProcessor "org.spongepowered:mixin:${MIXIN_VERSION}:processor"
         runtimeOnly "cpw.mods:bootstraplauncher:${BOOTSTRAPLAUNCHER_VERSION}"
+
+        mixinAnnotationProcessor "org.spongepowered:mixin:${MIXIN_VERSION}:processor"
+        mixinImplementation sourceSets.main.output
+        testImplementation sourceSets.mixin.output
     }
     dependencies sharedDeps
 
@@ -967,9 +985,9 @@ project(':forge') {
             forge_client {
                 property 'eventbus.checkTypesOnDispatch', 'true'
                 args '--launchTarget', 'forgeclientdev'
-                ideaModule "${rootProject.name}.${project.name}.main"
+                ideaModule "${rootProject.name}.${project.name}.mixin"
                 mods {
-                    minecraft { source sourceSets.main }
+                    minecraft { sources sourceSets.main, sourceSets.mixin }
                 }
             }
 
@@ -989,10 +1007,10 @@ project(':forge') {
 
             forge_server {
                 args '--launchTarget', 'forgeserverdev'
-                ideaModule "${rootProject.name}.${project.name}.main"
+                ideaModule "${rootProject.name}.${project.name}.mixin"
 
                 mods {
-                    minecraft { source sourceSets.main }
+                    minecraft { sources sourceSets.main, sourceSets.mixin }
                 }
             }
 
@@ -1013,10 +1031,10 @@ project(':forge') {
             forge_gameTestServer {
                 taskName 'forge_gameTestServer'
                 args '--launchTarget', 'forgegametestserverdev'
-                ideaModule "${rootProject.name}.${project.name}.main"
+                ideaModule "${rootProject.name}.${project.name}.mixin"
 
                 mods {
-                    minecraft { source sourceSets.main }
+                    minecraft { sources sourceSets.main, sourceSets.mixin }
                 }
             }
 
@@ -1041,10 +1059,10 @@ project(':forge') {
             forge_data {
                 taskName 'forge_data'
                 args '--launchTarget', 'forgedatadev'
-                ideaModule "${rootProject.name}.${project.name}.main"
+                ideaModule "${rootProject.name}.${project.name}.mixin"
 
                 mods {
-                    minecraft { source sourceSets.main }
+                    minecraft { sources sourceSets.main, sourceSets.mixin }
                 }
 
                 args forgeDataArgs
@@ -1142,7 +1160,16 @@ project(':forge') {
     }
 
     mixin {
-        add sourceSets.main, 'forge.refmap.json'
+        add sourceSets.mixin, 'forge.refmap.json'
+        config 'forge.mixins.json'
+    }
+
+    tasks.named('jar', Jar).configure {
+        from sourceSets.mixin.output
+    }
+
+    tasks.named('sourcesJar', Jar).configure {
+        from sourceSets.mixin.allJava
     }
 
     task crowdin(type: Crowdin) {
