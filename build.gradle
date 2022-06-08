@@ -304,6 +304,51 @@ def sharedDeps = {
     */
 }
 
+static def configureAnnotationsPostProcessor(Project project, SourceSet sourceSet) {
+    sourceSet.ext.annotationPostProcessorConfigurationName = sourceSet.getTaskName(null, "annotationPostProcessor")
+    sourceSet.ext.processAnnotationsTaskName = sourceSet.getTaskName("process", "Annotations")
+
+    def processorConfig = project.configurations.maybeCreate(sourceSet.annotationPostProcessorConfigurationName)
+    def compileTask = project.tasks.named(sourceSet.compileJavaTaskName, JavaCompile)
+    def task = project.tasks.register(sourceSet.processAnnotationsTaskName, Exec) {
+        inputs.files(compileTask)
+        inputs.files(processorConfig).skipWhenEmpty()
+        it.ext.compileTask = compileTask
+
+        def argsFile
+        doFirst {
+            executable = compileTask.get().javaCompiler.getOrElse(project.javaToolchains.compilerFor(project.java.toolchain).get()).executablePath
+            def destinationDirFile = compileTask.get().destinationDirectory.get().asFile
+            def destinationDirPath = destinationDirFile.toPath()
+            def args = [
+                    "-proc:only", // Only do annotation processing, no compilation
+                    "-d", // Destination directory
+                    destinationDirFile.toString(),
+                    "-cp", // Classpath
+                    String.join(File.pathSeparator,
+                            compileTask.get().classpath.asPath,
+                            processorConfig.asPath,
+                            compileTask.get().outputs.files.asPath
+                    ),
+            ]
+            args += getArgs()
+            args += compileTask.get().outputs.files.asFileTree
+                    .filter { it.toString().endsWith('.class') }
+                    .filter { !it.toString().endsWith('package-info.class') && !it.toString().endsWith('module-info.class')}
+                    .collect {
+                // Convert from com/example/Test.class to com.example.Test
+                destinationDirPath.relativize(it.toPath()).toString().replace('.class', '').replace(File.separator, '.')
+            }
+            argsFile = new File(temporaryDir, "javac-args.txt")
+            Files.write(argsFile.toPath(), args)
+            setArgs(["@" + argsFile.getAbsolutePath()])
+        }
+    }
+    compileTask.configure { finalizedBy task }
+
+    return task
+}
+
 def sharedFmlonlyForge = { Project prj ->
     ['Client', 'Server', 'Joined'].each { side ->
         ['slim', 'extra'].each { type ->
@@ -939,6 +984,23 @@ project(':forge') {
         api.extendsFrom(installer)
     }
 
+    mixin {
+        add sourceSets.main, 'forge.refmap.json'
+        disableAnnotationProcessorCheck()
+    }
+
+    def createMcpToSrg = tasks.named('createMcp2Srg')
+    configureAnnotationsPostProcessor(project, sourceSets.main).configure {
+        inputs.files(createMcpToSrg)
+        doFirst {
+            args(
+                    "-AreobfTsrgFile=${createMcpToSrg.get().outputs.files[0]}",
+                    "-AoutRefMapFile=${new File(compileTask.get().destinationDirectory.get().asFile, 'forge.refmap.json')}",
+                    "-AmappingTypes=tsrg"
+            )
+        }
+    }
+
     dependencies {
         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
         testImplementation 'org.junit.vintage:junit-vintage-engine:5.+'
@@ -949,7 +1011,7 @@ project(':forge') {
         implementation project(':javafmllanguage')
         implementation project(':lowcodelanguage')
         implementation project(':mclanguage')
-        annotationProcessor "org.spongepowered:mixin:${MIXIN_VERSION}:processor"
+        annotationPostProcessor "org.spongepowered:mixin:${MIXIN_VERSION}:processor"
         runtimeOnly "cpw.mods:bootstraplauncher:${BOOTSTRAPLAUNCHER_VERSION}"
     }
     dependencies sharedDeps
@@ -1139,10 +1201,6 @@ project(':forge') {
                 'Implementation-Vendor':    'Forge'
             ] as LinkedHashMap
         ]
-    }
-
-    mixin {
-        add sourceSets.main, 'forge.refmap.json'
     }
 
     task crowdin(type: Crowdin) {
